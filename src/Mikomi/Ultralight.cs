@@ -6,8 +6,6 @@ namespace Mikomi
     public partial class Ultralight
     {
         internal const string LIB_ULTRALIGHT = @"Ultralight";
-        internal const string LIB_JSCORE = @"Javascript";
-        internal const string LIB_APPCORE = @"AppCore";
 
         public static readonly Version Version = new Version((int)ulVersionMajor(), (int)ulVersionMinor(), (int)ulVersionPatch());
 
