@@ -19,9 +19,6 @@ dotnet_style_namespace_match_folder = true
 # Namespace declarations
 csharp_style_namespace_declarations = block_scoped
 
-# Require File Header
-dotnet_diagnostic.IDE0073.severity = error
-
 # Unused usings
 dotnet_diagnostic.IDE0005.severity = error
 
