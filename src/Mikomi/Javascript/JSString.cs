@@ -47,7 +47,10 @@ namespace Mikomi.Javascript
         }
 
         protected override void DisposeUnmanaged()
-            => JavascriptCore.JSStringRelease(Handle);
+        {
+            if (Context == null)
+                JavascriptCore.JSStringRelease(Handle);
+        }
 
         public bool Equals(JSString other)
             => JavascriptCore.JSStringIsEqual(Handle, other?.Handle ?? IntPtr.Zero);

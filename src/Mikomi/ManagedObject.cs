@@ -6,14 +6,16 @@ namespace Mikomi
     {
         private bool isDisposed;
 
-        internal readonly IntPtr Handle;
+        internal IntPtr Handle { get; }
 
         protected ManagedObject(IntPtr handle)
         {
             Handle = handle;
         }
 
-        protected abstract void DisposeUnmanaged();
+        protected virtual void DisposeUnmanaged()
+        {
+        }
 
         protected virtual void DisposeManaged()
         {

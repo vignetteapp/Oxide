@@ -5,14 +5,33 @@ namespace Mikomi.Javascript
 {
     public class JSContext : ManagedObject
     {
+        /// <summary>
+        /// Gets the global object for this <see cref="JSContext"/>.
+        /// </summary>
         public readonly JSObject Global;
+
+        /// <summary>
+        /// Gets the context group for this <see cref="JSContext"/>.
+        /// </summary>
         public readonly JSContextGroup Group;
+
+        /// <summary>
+        /// The Javascript undefined value.
+        /// </summary>
+        public readonly JSUndefined Undefined;
+
+        /// <summary>
+        /// The Javascript null value.
+        /// </summary>
+        public readonly JSNull Null;
 
         public JSContext(IntPtr handle)
             : base(handle)
         {
             Global = new JSObject(this, JavascriptCore.JSContextGetGlobalObject(Handle));
             Group = new JSContextGroup(JavascriptCore.JSContextGetGroup(Handle));
+            Undefined = new JSUndefined(this);
+            Null = new JSNull(this);
         }
     }
 
