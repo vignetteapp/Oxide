@@ -5,7 +5,7 @@ using Mikomi.Input;
 
 namespace Mikomi.Input
 {
-    public class ScrollEvent : ManagedObject
+    public class ScrollEvent : DisposableObject
     {
         public readonly ScrollEventType Type;
         public readonly Vector2 Delta;

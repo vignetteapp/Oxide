@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Mikomi.Javascript
 {
-    public sealed class JSString : ManagedObject, IJSValue<string>, IEquatable<JSString>, IEquatable<string>
+    public sealed class JSString : DisposableObject, IJSValue<string>, IEquatable<JSString>, IEquatable<string>
     {
         public JSContext Context { get; }
         public int Length => (int)JavascriptCore.JSStringGetLength(Handle);

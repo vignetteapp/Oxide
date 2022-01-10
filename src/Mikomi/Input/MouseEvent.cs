@@ -5,7 +5,7 @@ using Mikomi.Input;
 
 namespace Mikomi.Input
 {
-    public class MouseEvent : ManagedObject
+    public class MouseEvent : DisposableObject
     {
         public readonly MouseEventType Type;
         public readonly MouseButton Button;

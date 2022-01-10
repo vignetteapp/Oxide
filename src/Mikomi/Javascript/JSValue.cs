@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Mikomi.Javascript
 {
-    public abstract class JSValue : ManagedObject, IJSValue, IEquatable<JSValue>
+    public abstract class JSValue : DisposableObject, IJSValue, IEquatable<JSValue>
     {
         public JSContext Context { get; }
         public JSType Type => JavascriptCore.JSValueGetType(Context.Handle, Handle);

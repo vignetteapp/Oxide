@@ -8,8 +8,10 @@ namespace Mikomi.Graphics
     /// Manages the lifetime of all Views and coordinates all
     /// painting, rendering, network requests, and event dispatch.
     /// </summary>
-    public class Renderer : ManagedObject
+    public class Renderer : DisposableObject
     {
+        public readonly Session Session;
+
         /// <summary>
         /// Create the Ultralight Renderer directly.
         /// </summary>
@@ -33,6 +35,7 @@ namespace Mikomi.Graphics
         public Renderer(Config config)
             : base(Ultralight.ulCreateRenderer(config.Handle))
         {
+            Session = new Session(Ultralight.ulDefaultSession(Handle));
         }
 
         /// <summary>
@@ -88,5 +91,8 @@ namespace Mikomi
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulLogMemoryUsage(IntPtr renderer);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        internal static extern IntPtr ulDefaultSession(IntPtr renderer);
     }
 }

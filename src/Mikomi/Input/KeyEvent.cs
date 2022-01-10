@@ -1,5 +1,78 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using Mikomi.Input;
+
 namespace Mikomi.Input
 {
+    public class KeyEvent : DisposableObject
+    {
+        public readonly KeyEventType Type;
+        public readonly uint Modifiers;
+        public readonly int VirtualKeyCode;
+        public readonly int NativeKeyCode;
+        public readonly string Text;
+        public readonly string UnmodifiedText;
+        public readonly bool IsKeypad;
+        public readonly bool IsAutoRepeat;
+        public readonly bool IsSystemKey;
+
+        protected KeyEvent(IntPtr handle)
+            : base(handle)
+        {
+        }
+
+        public KeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,
+            string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
+            : base(createKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode, text, unmodifiedText, isKeypad, isAutoRepeat, isSystemKey))
+        {
+            Type = type;
+            Modifiers = modifiers;
+            VirtualKeyCode = virtualKeyCode;
+            NativeKeyCode = nativeKeyCode;
+            Text = text;
+            IsKeypad = isKeypad;
+            IsAutoRepeat = isAutoRepeat;
+            IsSystemKey = isSystemKey;
+        }
+
+        private static IntPtr createKeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,
+            string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
+        {
+            using var textString = new ULString(text);
+            using var unmodifiedTextString = new ULString(unmodifiedText);
+
+            return Ultralight.ulCreateKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode,
+                textString.Handle, unmodifiedTextString.Handle, isKeypad, isAutoRepeat, isSystemKey);
+        }
+
+        /// <summary>
+        /// Create a key event from a Windows key event.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException"/>
+        [SupportedOSPlatform("Windows")]
+        public static KeyEvent CreateKeyEventFromWindowsEvent(KeyEventType type, UIntPtr wparam, UIntPtr lparam, bool isSystemKey)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                throw new PlatformNotSupportedException();
+
+            return new KeyEvent(Ultralight.ulCreateKeyEventWindows(type, wparam, lparam, isSystemKey));
+        }
+
+        /// <summary>
+        /// Create a key event from an NSEvent.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException"/>
+        [SupportedOSPlatform("OSX")]
+        public static KeyEvent CreateKeyEventFromNSEvent(IntPtr evt)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                throw new PlatformNotSupportedException();
+
+            return new KeyEvent(Ultralight.ulCreateKeyEventMacOS(evt));
+        }
+    }
+
     public enum KeyEventType
     {
         /// <summary>
@@ -31,5 +104,33 @@ namespace Mikomi.Input
         /// a physical key being pressed (eg, WM_CHAR on Windows).
         /// </summary>
         Char,
+    }
+}
+
+namespace Mikomi
+{
+    public partial class Ultralight
+    {
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        internal static extern IntPtr ulCreateKeyEvent(
+            KeyEventType type,
+            uint modifiers,
+            int virtualKeyCode,
+            int nativeKeyCode,
+            IntPtr text,
+            IntPtr unmodifiedText,
+            [MarshalAs(UnmanagedType.I1)] bool isKeypad,
+            [MarshalAs(UnmanagedType.I1)] bool isAutoRepeat,
+            [MarshalAs(UnmanagedType.I1)] bool isSystemKey);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        internal static extern IntPtr ulCreateKeyEventWindows(
+            KeyEventType type,
+            UIntPtr wparam,
+            UIntPtr lparam,
+            [MarshalAs(UnmanagedType.I1)] bool isSystemKey);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        internal static extern IntPtr ulCreateKeyEventMacOS(IntPtr evt);
     }
 }

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Mikomi.Javascript
 {
-    public class JSContext : ManagedObject
+    public class JSContext : DisposableObject
     {
         /// <summary>
         /// Gets the global object for this <see cref="JSContext"/>.
@@ -35,7 +35,7 @@ namespace Mikomi.Javascript
         }
     }
 
-    public class JSContextGroup : ManagedObject
+    public class JSContextGroup : DisposableObject
     {
         internal JSContextGroup(IntPtr handle)
             : base(handle)

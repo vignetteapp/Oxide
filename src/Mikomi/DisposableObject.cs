@@ -2,15 +2,17 @@ using System;
 
 namespace Mikomi
 {
-    public abstract class ManagedObject : IDisposable
+    public abstract class DisposableObject : IDisposable
     {
         private bool isDisposed;
+        private readonly bool owned;
 
         internal IntPtr Handle { get; }
 
-        protected ManagedObject(IntPtr handle)
+        protected DisposableObject(IntPtr handle, bool owned = true)
         {
             Handle = handle;
+            this.owned = owned;
         }
 
         protected virtual void DisposeUnmanaged()
@@ -29,12 +31,13 @@ namespace Mikomi
             if (disposing)
                 DisposeManaged();
 
-            DisposeUnmanaged();
+            if (owned)
+                DisposeUnmanaged();
 
             isDisposed = true;
         }
 
-        ~ManagedObject()
+        ~DisposableObject()
         {
             Dispose(false);
         }
