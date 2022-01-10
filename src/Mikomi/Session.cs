@@ -40,6 +40,8 @@ namespace Mikomi
             => Ultralight.ulDestroySession(Handle);
     }
 
+#pragma warning disable CA2101 // Custom marshaler is used
+
     public partial class Ultralight
     {
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
@@ -66,4 +68,7 @@ namespace Mikomi
         [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
         internal static extern string ulSessionGetDiskPath(IntPtr session);
     }
+
+#pragma warning restore CA2101
+
 }

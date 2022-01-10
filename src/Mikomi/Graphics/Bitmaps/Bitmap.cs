@@ -152,6 +152,9 @@ namespace Mikomi.Graphics.Bitmaps
 
 namespace Mikomi
 {
+
+#pragma warning disable CA2101 // Custom marshaler is used
+
     public partial class Ultralight
     {
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
@@ -214,4 +217,7 @@ namespace Mikomi
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulBitmapSwapRedBlueChannels(IntPtr bitmap);
     }
+
+#pragma warning restore CA2101
+
 }

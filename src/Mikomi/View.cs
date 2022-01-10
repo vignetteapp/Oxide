@@ -300,6 +300,8 @@ namespace Mikomi
     internal delegate void DOMReadyCallback(IntPtr userData, IntPtr caller, ulong frameId, [MarshalAs(UnmanagedType.I1)] bool isMainFrame, IntPtr url);
     internal delegate void UpdateHistoryCallback(IntPtr userData, IntPtr caller);
 
+#pragma warning disable CA2101 // Custom marshaler is used
+
     public partial class Ultralight
     {
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
@@ -446,4 +448,7 @@ namespace Mikomi
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern IntPtr ulViewCreateInspectorView(IntPtr view);
     }
+
+#pragma warning restore CA2101
+
 }

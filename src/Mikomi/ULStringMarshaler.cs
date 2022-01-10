@@ -39,6 +39,8 @@ namespace Mikomi
             => Ultralight.ulStringGetData(pNativeData);
     }
 
+#pragma warning disable CA2101 // Custom marshaler is used
+
     public partial class Ultralight
     {
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CharSet = CharSet.Ansi, BestFitMapping = true, ThrowOnUnmappableChar = true)]
@@ -54,4 +56,7 @@ namespace Mikomi
         [return: MarshalAs(UnmanagedType.LPWStr)]
         internal static extern string ulStringGetData(IntPtr str);
     }
+
+#pragma warning restore CA2101
+
 }

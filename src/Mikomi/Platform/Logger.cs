@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace Mikomi.Platform
@@ -16,20 +15,8 @@ namespace Mikomi.Platform
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct Logger : IDisposable
+    internal struct Logger
     {
-        private GCHandle handle { get; set; }
-        private LoggerMessageCallback logMessage;
-
-        public LoggerMessageCallback LogMessage
-        {
-            get => logMessage;
-            set => handle = GCHandle.Alloc(logMessage = value, GCHandleType.Normal);
-        }
-
-        public void Dispose()
-        {
-            handle.Free();
-        }
+        public LoggerMessageCallback LogMessage;
     }
 }
