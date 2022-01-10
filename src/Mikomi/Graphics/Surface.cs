@@ -115,12 +115,12 @@ namespace Mikomi.Graphics
             => Ultralight.ulSurfaceClearDirtyBounds(Handle);
 
         /// <summary>
-        /// Gets the underlying <see cref="SurfaceDefinition"/> defined with <see cref="Platform.SetSurfaceDefinition(SurfaceDefinition)"/>
+        /// Gets the underlying <see cref="ISurfaceDefinition"/> defined with <see cref="Platform.SurfaceDefinition"/>
         /// </summary>
-        /// <typeparam name="T">The <see cref="SurfaceDefinition"/> to cast to upon returning.</typeparam>
-        /// <returns>The <see cref="SurfaceDefinition"/> or <see cref="null"/> if a custom definition was not set.</returns>
+        /// <typeparam name="T">The <see cref="ISurfaceDefinition"/> to cast to upon returning.</typeparam>
+        /// <returns>The <see cref="ISurfaceDefinition"/> or <see cref="null"/> if a custom definition was not set.</returns>
         public T GetDefiniton<T>()
-            where T : SurfaceDefinition
+            where T : class, ISurfaceDefinition
         {
             var definition = Ultralight.ulSurfaceGetUserData(Handle);
 

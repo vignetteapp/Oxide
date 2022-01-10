@@ -21,8 +21,7 @@ namespace Mikomi
                 if (value == cachePath)
                     return;
 
-                using var ulString = new ULString(cachePath = value);
-                Ultralight.ulConfigSetCachePath(Handle, ulString.Handle);
+                Ultralight.ulConfigSetCachePath(Handle, cachePath = value);
             }
         }
 
@@ -98,8 +97,7 @@ namespace Mikomi
                 if (value == userStylesheet)
                     return;
 
-                using var ulString = new ULString(userStylesheet = value);
-                Ultralight.ulConfigSetUserStyleSheet(Handle, ulString.Handle);
+                Ultralight.ulConfigSetUserStyleSheet(Handle, userStylesheet = value);
             }
         }
 
@@ -302,7 +300,7 @@ namespace Mikomi
         internal static extern void ulDestroyConfig(IntPtr handle);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetCachePath(IntPtr config, IntPtr cachePath);
+        internal static extern void ulConfigSetCachePath(IntPtr config, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string cachePath);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulConfigSetFaceWinding(IntPtr config, FaceWinding winding);
@@ -314,7 +312,7 @@ namespace Mikomi
         internal static extern void ulConfigSetFontGamma(IntPtr config, double gamma);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetUserStyleSheet(IntPtr config, IntPtr cssString);
+        internal static extern void ulConfigSetUserStyleSheet(IntPtr config, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string cssString);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulConfigSetForceRepaint(IntPtr config, [MarshalAs(UnmanagedType.I1)] bool enabled);

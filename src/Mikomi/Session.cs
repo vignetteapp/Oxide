@@ -19,26 +19,12 @@ namespace Mikomi
         /// <summary>
         /// Unique name identifying the session (used for unique disk path).
         /// </summary>
-        public string Name
-        {
-            get
-            {
-                using var ulString = new ULString(Ultralight.ulSessionGetName(Handle));
-                return ulString.Data;
-            }
-        }
+        public string Name => Ultralight.ulSessionGetName(Handle);
 
         /// <summary>
         /// The disk path to write to (used by persistent sessions only).
         /// </summary>
-        public string DiskPath
-        {
-            get
-            {
-                using var ulString = new ULString(Ultralight.ulSessionGetDiskPath(Handle));
-                return ulString.Data;
-            }
-        }
+        public string DiskPath => Ultralight.ulSessionGetDiskPath(Handle);
 
         internal Session(IntPtr handle)
             : base(handle, false)
@@ -46,24 +32,21 @@ namespace Mikomi
         }
 
         public Session(Renderer renderer, bool persistent, string name)
-            : base(Ultralight.ulCreateSession(renderer.Handle, persistent, getULString(name)))
+            : base(Ultralight.ulCreateSession(renderer.Handle, persistent, name))
         {
         }
 
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroySession(Handle);
-
-        private static IntPtr getULString(string name)
-        {
-            using var ulString = new ULString(name);
-            return ulString.Handle;
-        }
     }
 
     public partial class Ultralight
     {
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateSession(IntPtr renderer, [MarshalAs(UnmanagedType.I1)] bool isPersistent, IntPtr name);
+        internal static extern IntPtr ulCreateSession(
+            IntPtr renderer,
+            [MarshalAs(UnmanagedType.I1)] bool isPersistent,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string name);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulDestroySession(IntPtr session);
@@ -73,12 +56,14 @@ namespace Mikomi
         internal static extern bool ulSessionIsPersistent(IntPtr session);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulSessionGetName(IntPtr session);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
+        internal static extern string ulSessionGetName(IntPtr session);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern uint ulSessionGetId(IntPtr session);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulSessionGetDiskPath(IntPtr session);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
+        internal static extern string ulSessionGetDiskPath(IntPtr session);
     }
 }

@@ -16,29 +16,14 @@ namespace Mikomi
         /// </summary>
         public string URL
         {
-            get
-            {
-                using var ulString = new ULString(Ultralight.ulViewGetUrl(Handle), false);
-                return ulString.Data;
-            }
-            set
-            {
-                using var ulString = new ULString(value);
-                Ultralight.ulViewLoadURL(Handle, ulString.Handle);
-            }
+            get => Ultralight.ulViewGetUrl(Handle);
+            set => Ultralight.ulViewLoadURL(Handle, value);
         }
 
         /// <summary>
         /// Get current title.
         /// </summary>
-        public string Title
-        {
-            get
-            {
-                using var ulString = new ULString(Ultralight.ulViewGetTitle(Handle), false);
-                return ulString.Data;
-            }
-        }
+        public string Title => Ultralight.ulViewGetTitle(Handle);
 
         /// <summary>
         /// Get the width, in pixels. Set resizes the width.
@@ -162,13 +147,7 @@ namespace Mikomi
         /// <param name="exception">The resulting string when an exception has occured.</param>
         /// <returns>The JavaScript result as a string.</returns>
         public string EvaluateScript(string script, out string exception)
-        {
-            using var exceptionString = new ULString(string.Empty);
-            using var scriptString = new ULString(script);
-            using var result = new ULString(Ultralight.ulViewEvaluateScript(Handle, scriptString.Handle, exceptionString.Handle));
-            exception = exceptionString.Data;
-            return result.Data;
-        }
+            => Ultralight.ulViewEvaluateScript(Handle, script, out exception);
 
         /// <summary>
         /// Load a raw string of HTML.
@@ -176,8 +155,7 @@ namespace Mikomi
         /// <param name="html">The html string to load.</param>
         public void LoadHTML(string html)
         {
-            using var htmlString = new ULString(html);
-            Ultralight.ulViewLoadHTML(Handle, htmlString.Handle);
+            Ultralight.ulViewLoadHTML(Handle, html);
         }
 
         /// <summary>
@@ -331,10 +309,12 @@ namespace Mikomi
         internal static extern void ulDestroyView(IntPtr view);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulViewGetUrl(IntPtr view);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
+        internal static extern string ulViewGetUrl(IntPtr view);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulViewGetTitle(IntPtr view);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
+        internal static extern string ulViewGetTitle(IntPtr view);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern uint ulViewGetWidth(IntPtr view);
@@ -353,10 +333,16 @@ namespace Mikomi
         internal static extern IntPtr ulViewGetSurface(IntPtr view);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewLoadHTML(IntPtr view, IntPtr str);
+        internal static extern void ulViewLoadHTML(
+            IntPtr view,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string html
+        );
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewLoadURL(IntPtr view, IntPtr str);
+        internal static extern void ulViewLoadURL(
+            IntPtr view,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string url
+        );
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulViewResize(IntPtr view, uint width, uint height);
@@ -368,7 +354,11 @@ namespace Mikomi
         internal static extern void ulViewUnlockJSContext(IntPtr view);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulViewEvaluateScript(IntPtr view, IntPtr jsString, IntPtr exception);
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))]
+        internal static extern string ulViewEvaluateScript(
+            IntPtr view,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string jsString,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] out string exception);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]

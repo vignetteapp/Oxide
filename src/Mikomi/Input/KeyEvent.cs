@@ -39,11 +39,8 @@ namespace Mikomi.Input
         private static IntPtr createKeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,
             string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
         {
-            using var textString = new ULString(text);
-            using var unmodifiedTextString = new ULString(unmodifiedText);
-
             return Ultralight.ulCreateKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode,
-                textString.Handle, unmodifiedTextString.Handle, isKeypad, isAutoRepeat, isSystemKey);
+                text, unmodifiedText, isKeypad, isAutoRepeat, isSystemKey);
         }
 
         /// <summary>
@@ -117,8 +114,8 @@ namespace Mikomi
             uint modifiers,
             int virtualKeyCode,
             int nativeKeyCode,
-            IntPtr text,
-            IntPtr unmodifiedText,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string text,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string unmodifiedText,
             [MarshalAs(UnmanagedType.I1)] bool isKeypad,
             [MarshalAs(UnmanagedType.I1)] bool isAutoRepeat,
             [MarshalAs(UnmanagedType.I1)] bool isSystemKey);

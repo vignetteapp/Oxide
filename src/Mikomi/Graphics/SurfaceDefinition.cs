@@ -1,20 +1,86 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Mikomi.Graphics
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ULSurfaceDefinition
+    internal struct SurfaceDefinition : IDisposable
     {
-        public SurfaceDefinitionCreateCallback Create;
-        public SurfaceDefinitionDestroyCallback Destroy;
-        public SurfaceDefinitionGetWidthCallback GetWidth;
-        public SurfaceDefinitionGetHeightCallback GetHeight;
-        public SurfaceDefinitionGetRowBytesCallback GetRowBytes;
-        public SurfaceDefinitionGetSizeCallback GetSize;
-        public SurfaceDefinitionLockPixelsCallback LockPixels;
-        public SurfaceDefinitionUnlockPixelsCallback UnlockPixels;
-        public SurfaceDefinitionResizeCallback Resize;
+        private static List<GCHandle> handles { get; } = new List<GCHandle>();
+
+        private SurfaceDefinitionCreateCallback create;
+        private SurfaceDefinitionDestroyCallback destroy;
+        private SurfaceDefinitionGetWidthCallback getWidth;
+        private SurfaceDefinitionGetHeightCallback getHeight;
+        private SurfaceDefinitionGetRowBytesCallback getRowBytes;
+        private SurfaceDefinitionGetSizeCallback getSize;
+        private SurfaceDefinitionLockPixelsCallback lockPixels;
+        private SurfaceDefinitionUnlockPixelsCallback unlockPixels;
+        private SurfaceDefinitionResizeCallback resize;
+
+        public SurfaceDefinitionCreateCallback Create
+        {
+            get => create;
+            set => handles.Add(GCHandle.Alloc(create = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionDestroyCallback Destroy
+        {
+            get => destroy;
+            set => handles.Add(GCHandle.Alloc(destroy = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionGetWidthCallback GetWidth
+        {
+            get => getWidth;
+            set => handles.Add(GCHandle.Alloc(getWidth = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionGetHeightCallback GetHeight
+        {
+            get => getHeight;
+            set => handles.Add(GCHandle.Alloc(getHeight = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionGetRowBytesCallback GetRowBytes
+        {
+            get => getRowBytes;
+            set => handles.Add(GCHandle.Alloc(getRowBytes = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionGetSizeCallback GetSize
+        {
+            get => getSize;
+            set => handles.Add(GCHandle.Alloc(getSize = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionLockPixelsCallback LockPixels
+        {
+            get => lockPixels;
+            set => handles.Add(GCHandle.Alloc(lockPixels = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionUnlockPixelsCallback UnlockPixels
+        {
+            get => unlockPixels;
+            set => handles.Add(GCHandle.Alloc(unlockPixels = value, GCHandleType.Normal));
+        }
+
+        public SurfaceDefinitionResizeCallback Resize
+        {
+            get => resize;
+            set => handles.Add(GCHandle.Alloc(resize = value, GCHandleType.Normal));
+        }
+
+        public void Dispose()
+        {
+            foreach (var handle in handles)
+            {
+                handle.Free();
+                handles.Remove(handle);
+            }
+        }
     }
 
     internal delegate IntPtr SurfaceDefinitionCreateCallback(uint width, uint height);
@@ -22,49 +88,8 @@ namespace Mikomi.Graphics
     internal delegate uint SurfaceDefinitionGetWidthCallback(IntPtr userData);
     internal delegate uint SurfaceDefinitionGetHeightCallback(IntPtr userData);
     internal delegate uint SurfaceDefinitionGetRowBytesCallback(IntPtr userData);
-    internal delegate void SurfaceDefinitionGetSizeCallback(IntPtr userData);
+    internal delegate uint SurfaceDefinitionGetSizeCallback(IntPtr userData);
     internal delegate IntPtr SurfaceDefinitionLockPixelsCallback(IntPtr userData);
     internal delegate void SurfaceDefinitionUnlockPixelsCallback(IntPtr userData);
     internal delegate void SurfaceDefinitionResizeCallback(IntPtr userData, uint width, uint height);
-
-    public abstract class SurfaceDefinition
-    {
-        public abstract uint Width { get; }
-        public abstract uint Height { get; }
-        public abstract uint RowBytes { get; }
-
-        public abstract void Create(uint width, uint height);
-        public abstract void Destroy();
-        public abstract void GetSize();
-        public abstract IntPtr LockPixels();
-        public abstract void UnlockPixels();
-        public abstract void Resize(uint width, uint height);
-
-        private GCHandle handle;
-
-        internal ULSurfaceDefinition Internal => new ULSurfaceDefinition
-        {
-            Create = new SurfaceDefinitionCreateCallback(CreateInternal),
-            Destroy = new SurfaceDefinitionDestroyCallback(DestroyInternal),
-            GetWidth = new SurfaceDefinitionGetWidthCallback(_ => getFunc(nameof(Width)).Invoke()),
-            GetHeight = new SurfaceDefinitionGetHeightCallback(_ => getFunc(nameof(Height)).Invoke()),
-            GetRowBytes = new SurfaceDefinitionGetRowBytesCallback(_ => getFunc(nameof(RowBytes)).Invoke()),
-            GetSize = new SurfaceDefinitionGetSizeCallback(_ => GetSize()),
-            LockPixels = new SurfaceDefinitionLockPixelsCallback(_ => LockPixels()),
-            UnlockPixels = new SurfaceDefinitionUnlockPixelsCallback(_ => UnlockPixels()),
-            Resize = new SurfaceDefinitionResizeCallback((_, w, h) => Resize(w, h)),
-        };
-
-        protected internal IntPtr CreateInternal(uint width, uint height)
-        {
-            Create(width, height);
-            return GCHandle.ToIntPtr(handle = GCHandle.Alloc(this, GCHandleType.Pinned));
-        }
-
-        protected internal void DestroyInternal(IntPtr _)
-            => handle.Free();
-
-        private Func<uint> getFunc(string name)
-            => GetType().GetProperty(name).GetGetMethod().CreateDelegate<Func<uint>>();
-    }
 }

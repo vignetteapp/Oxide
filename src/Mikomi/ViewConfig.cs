@@ -112,8 +112,7 @@ namespace Mikomi
                 if (value == fontFamilyStandard)
                     return;
 
-                using var ulString = new ULString(fontFamilyStandard = value);
-                Ultralight.ulViewConfigSetFontFamilyStandard(Handle, ulString.Handle);
+                Ultralight.ulViewConfigSetFontFamilyStandard(Handle, fontFamilyStandard = value);
             }
         }
 
@@ -132,8 +131,7 @@ namespace Mikomi
                 if (value == fontFamilyFixed)
                     return;
 
-                using var ulString = new ULString(fontFamilyFixed = value);
-                Ultralight.ulViewConfigSetFontFamilyFixed(Handle, ulString.Handle);
+                Ultralight.ulViewConfigSetFontFamilyFixed(Handle, fontFamilyFixed = value);
             }
         }
 
@@ -152,8 +150,7 @@ namespace Mikomi
                 if (value == fontFamilySerif)
                     return;
 
-                using var ulString = new ULString(fontFamilySerif = value);
-                Ultralight.ulViewConfigSetFontFamilySerif(Handle, ulString.Handle);
+                Ultralight.ulViewConfigSetFontFamilySerif(Handle, fontFamilySerif = value);
             }
         }
 
@@ -172,8 +169,7 @@ namespace Mikomi
                 if (value == fontFamilySansSerif)
                     return;
 
-                using var ulString = new ULString(fontFamilySansSerif = value);
-                Ultralight.ulViewConfigSetFontFamilySansSerif(Handle, ulString.Handle);
+                Ultralight.ulViewConfigSetFontFamilySansSerif(Handle, fontFamilySansSerif = value);
             }
         }
 
@@ -192,8 +188,7 @@ namespace Mikomi
                 if (value == userAgent)
                     return;
 
-                using var ulString = new ULString(userAgent = value);
-                Ultralight.ulViewConfigSetFontFamilyUserAgent(Handle, ulString.Handle);
+                Ultralight.ulViewConfigSetFontFamilyUserAgent(Handle, userAgent = value);
             }
         }
 
@@ -233,18 +228,33 @@ namespace Mikomi
         internal static extern void ulViewConfigSetEnableJavaScript(IntPtr config, [MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewConfigSetFontFamilyStandard(IntPtr config, IntPtr fontName);
+        internal static extern void ulViewConfigSetFontFamilyStandard(
+            IntPtr config,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string fontName
+        );
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewConfigSetFontFamilyFixed(IntPtr config, IntPtr fontName);
+        internal static extern void ulViewConfigSetFontFamilyFixed(
+            IntPtr config,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string fontName
+        );
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewConfigSetFontFamilySerif(IntPtr config, IntPtr fontName);
+        internal static extern void ulViewConfigSetFontFamilySerif(
+            IntPtr config,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string fontName
+        );
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewConfigSetFontFamilySansSerif(IntPtr config, IntPtr fontName);
+        internal static extern void ulViewConfigSetFontFamilySansSerif(
+            IntPtr config,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string fontName
+        );
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewConfigSetFontFamilyUserAgent(IntPtr config, IntPtr fontName);
+        internal static extern void ulViewConfigSetFontFamilyUserAgent(
+            IntPtr config,
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string fontName
+        );
     }
 }

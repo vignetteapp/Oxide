@@ -12,7 +12,7 @@ namespace Mikomi.Graphics
         public float Bottom;
     }
 
-    public static class RectIExtensions
+    public static class RectExtensions
     {
         public static bool IsEmpty(this Rect rect)
             => Ultralight.ulRectIsEmpty(rect);
