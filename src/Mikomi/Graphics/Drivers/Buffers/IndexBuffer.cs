@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Mikomi.Graphics.Drivers.Buffers
@@ -6,7 +7,17 @@ namespace Mikomi.Graphics.Drivers.Buffers
     [StructLayout(LayoutKind.Sequential)]
     public struct IndexBuffer
     {
-        public uint Size;
-        public IntPtr Data;
+        private readonly uint size;
+        private readonly IntPtr data;
+
+        public IReadOnlyList<byte> Data
+        {
+            get
+            {
+                byte[] array = new byte[size];
+                Marshal.Copy(data, array, 0, array.Length);
+                return array;
+            }
+        }
     }
 }

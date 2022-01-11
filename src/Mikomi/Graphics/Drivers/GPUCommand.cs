@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace Mikomi.Graphics.Drivers
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct GPUCommand
+    public struct GPUCommand
     {
         [MarshalAs(UnmanagedType.U1)]
         public GPUCommandType CommandType;

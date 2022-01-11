@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Mikomi.Graphics.Drivers.Vertices;
 
 namespace Mikomi.Graphics.Drivers.Buffers
 {
@@ -7,7 +10,36 @@ namespace Mikomi.Graphics.Drivers.Buffers
     public struct VertexBuffer
     {
         public VertexBufferFormat Format;
-        public uint Size;
-        public IntPtr Data;
+        private readonly uint count;
+        private readonly IntPtr data;
+
+        public IReadOnlyList<IVertex> Data
+        {
+            get
+            {
+                if (Format == VertexBufferFormat.Format_2f_4ub_2f_2f_28f)
+                    return toVertices<Vertex_2f_4ub_2f_2f_28f>(data, count).Cast<IVertex>().ToList();
+
+                if (Format == VertexBufferFormat.Format_2f_4ub_2f)
+                    return toVertices<Vertex_2f_4ub_2f>(data, count).Cast<IVertex>().ToList();
+
+                return null;
+            }
+        }
+
+        private static T[] toVertices<T>(IntPtr ptr, uint count)
+            where T : IVertex
+        {
+            int size = Marshal.SizeOf<T>();
+            var array = new T[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                var item = new IntPtr(ptr.ToInt64() + i * size);
+                array[i] = Marshal.PtrToStructure<T>(item);
+            }
+
+            return array;
+        }
     }
 }

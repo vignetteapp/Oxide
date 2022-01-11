@@ -1,12 +1,17 @@
 using System.Runtime.InteropServices;
 
-namespace Mikomi.Graphics
+namespace Mikomi.Graphics.Drivers.Vertices
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct Vertex_2f_4ub_2f
+    public struct Vertex_2f_4ub_2f : IVertex
     {
+        [MarshalAs(UnmanagedType.LPArray, SizeConst = 2)]
         public float[] Pos;
+
+        [MarshalAs(UnmanagedType.LPArray, SizeConst = 4)]
         public byte[] Color;
+
+        [MarshalAs(UnmanagedType.LPArray, SizeConst = 2)]
         public float[] Obj;
     }
 }

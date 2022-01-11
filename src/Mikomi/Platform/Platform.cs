@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Mikomi.Graphics;
+using Mikomi.Graphics.Bitmaps;
 using Mikomi.Graphics.Drivers;
 using Mikomi.Platform;
 
@@ -61,16 +62,22 @@ namespace Mikomi.Platform
         /// </summary>
         /// <param name="driver">The driver to use.</param>
         public static void SetGPUDriver(IGPUDriver driver)
-        {
-            gpuDriver = new GPUDriver
+            => Ultralight.ulPlatformSetGPUDriver(gpuDriver = new GPUDriver
             {
                 BeginSynchronize = driver.BeginSynchronize,
                 EndSynchronize = driver.EndSynchronize,
                 NextTextureId = driver.GetNextTextureId,
+                CreateTexture = (i, b) => driver.CreateTexture(i, new Bitmap(b, false)),
+                UpdateTexture = (i, b) => driver.UpdateTexture(i, new Bitmap(b, false)),
+                DestroyTexture = driver.DestroyTexture,
                 NextGeometryId = driver.GetNextGeometryId,
+                CreateGeometry = driver.CreateGeometry,
+                UpdateGeometry = driver.UpdateGeometry,
+                DestroyGeometry = driver.DestroyGeometry,
                 NextRenderBufferId = driver.GetNextRenderBufferId,
-            };
-        }
+                CreateRenderBuffer = driver.CreateRenderBuffer,
+                DestroyRenderBuffer = driver.DestroyRenderBuffer,
+            });
 
         /// <summary>
         /// Sets the platform file system.
@@ -121,5 +128,8 @@ namespace Mikomi
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulPlatformSetClipboard(Clipboard clipboard);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        internal static extern void ulPlatformSetGPUDriver(GPUDriver driver);
     }
 }

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace Mikomi.Graphics.Drivers.Buffers
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RenderBuffer
+    public struct RenderBuffer
     {
         public uint TextureId;
         public uint Width;

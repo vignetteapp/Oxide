@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Mikomi.Graphics
+namespace Mikomi
 {
     /// <summary>
     /// Manages the lifetime of all Views and coordinates all
@@ -73,10 +73,7 @@ namespace Mikomi.Graphics
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroyRenderer(Handle);
     }
-}
 
-namespace Mikomi
-{
     public partial class Ultralight
     {
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]

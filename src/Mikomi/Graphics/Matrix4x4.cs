@@ -6,6 +6,7 @@ namespace Mikomi.Graphics
     [StructLayout(LayoutKind.Sequential)]
     public struct Matrix4x4
     {
+        [MarshalAs(UnmanagedType.LPArray, SizeConst = 16)]
         public float[] Data;
     }
 
