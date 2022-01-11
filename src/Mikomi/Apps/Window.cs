@@ -117,10 +117,35 @@ namespace Mikomi.Apps
             set => AppCore.ulWindowSetTitle(Handle, title = value);
         }
 
+        /// <summary>
+        /// Invoked when the window is closing.
+        /// </summary>
+        public event EventHandler OnClose;
+
+        /// <summary>
+        /// Invoked when the window is resizing.
+        /// </summary>
+        public event ResizeEventHandler OnResize;
+
+        private ResizeCallback resize;
+        private CloseCallback close;
+
         internal Window(Monitor monitor, int width, int height, bool isFullScreen, WindowFlags flags)
             : base(AppCore.ulCreateWindow(monitor.Handle, (uint)width, (uint)height, isFullScreen, flags))
         {
             Monitor = monitor;
+            AppCore.ulWindowSetCloseCallback(Handle, close += handleClose, IntPtr.Zero);
+            AppCore.ulWindowSetResizeCallback(Handle, resize += handleResize, IntPtr.Zero);
+        }
+
+        private void handleClose(IntPtr data, IntPtr window)
+        {
+            OnClose?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void handleResize(IntPtr data, IntPtr window, uint width, uint height)
+        {
+            OnResize?.Invoke(this, new ResizeEventArgs(width, height));
         }
 
         /// <summary>
@@ -161,17 +186,38 @@ namespace Mikomi.Apps
         /// <summary>
         /// Creates a new overlay from this window.
         /// </summary>
-        public Overlay CreateOverlay(ViewConfig config, int width, int height, int x, int y)
-            => new Overlay(this, new View(Monitor.App.Renderer, width, height, config, Monitor.App.Renderer.Session), x, y);
+        public Overlay CreateOverlay(int width, int height, int x, int y)
+            => new Overlay(this, width, height, x, y);
 
         /// <summary>
         /// Creates a new overlay from this window inheriting its size.
         /// </summary>
-        public Overlay CreateOverlay(ViewConfig config)
-            => CreateOverlay(config, Width, Height, 0, 0);
+        public Overlay CreateOverlay()
+            => CreateOverlay(Width, Height, 0, 0);
+
+        protected override void DisposeManaged()
+        {
+            resize -= handleResize;
+            close -= handleClose;
+        }
 
         protected override void DisposeUnmanaged()
             => AppCore.ulDestroyWindow(Handle);
+    }
+
+    public delegate void ResizeEventHandler(object sender, ResizeEventArgs args);
+
+    public class ResizeEventArgs : EventArgs
+    {
+        public int Width { get; }
+
+        public int Height { get; }
+
+        internal ResizeEventArgs(uint width, uint height)
+        {
+            Width = (int)width;
+            Height = (int)height;
+        }
     }
 
     internal delegate void CloseCallback(IntPtr userData, IntPtr window);

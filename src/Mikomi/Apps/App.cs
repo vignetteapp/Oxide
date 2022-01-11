@@ -5,6 +5,8 @@ namespace Mikomi.Apps
 {
     public class App : DisposableObject
     {
+        private static App current;
+
         /// <summary>
         /// The underlying Renderer instance.
         /// </summary>
@@ -38,11 +40,19 @@ namespace Mikomi.Apps
         public App(AppConfig appConfig = null, Config rendererConfig = null)
             : base(AppCore.ulCreateApp(appConfig?.Handle ?? IntPtr.Zero, rendererConfig?.Handle ?? IntPtr.Zero))
         {
+            if (current != null)
+                throw new InvalidOperationException($"An instance of {nameof(App)} already exists.");
+
+            current = this;
+
             Renderer = new Renderer(AppCore.ulAppGetRenderer(Handle));
             Monitor = new Monitor(AppCore.ulAppGetMainMonitor(Handle), this);
             AppCore.ulAppSetUpdateCallback(Handle, updateCallback = (_) => Update(), IntPtr.Zero);
         }
 
+        /// <summary>
+        /// Called every frame.
+        /// </summary>
         protected virtual void Update()
         {
         }
@@ -58,7 +68,10 @@ namespace Mikomi.Apps
         public void Quit() => AppCore.ulAppQuit(Handle);
 
         protected override void DisposeUnmanaged()
-            => AppCore.ulDestroyApp(Handle);
+        {
+            AppCore.ulDestroyApp(Handle);
+            current = null;
+        }
     }
 
     internal delegate void AppUpdateCallback(IntPtr userData);

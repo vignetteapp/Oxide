@@ -8,14 +8,14 @@ namespace Mikomi.Apps
         internal const string LIB_APPCORE = @"AppCore";
 
         /// <summary>
-        /// This is only needed if you are not calling ulCreateApp().
+        /// This is only needed if you are not creating your own app.
         /// <br/>
         /// Initializes the platform font loader and sets it as the current FontLoader.
         /// </summary>
         public static void EnablePlatformFontLoader() => ulEnablePlatformFontLoader();
 
         /// <summary>
-        /// This is only needed if you are not calling ulCreateApp().
+        /// This is only needed if you are not creating your own app.
         /// <br/>
         /// Initializes the platform file system (needed for loading file:/// URLs) and
         /// sets it as the current FileSystem.
@@ -25,7 +25,7 @@ namespace Mikomi.Apps
         public static void EnablePlatformFileSystem(string basePath) => ulEnablePlatformFileSystem(basePath);
 
         /// <summary>
-        /// This is only needed if you are not calling ulCreateApp().
+        /// This is only needed if you are not creating your own app.
         /// <br/>
         /// Initializes the default logger (writes the log to a file).
         /// <br/>

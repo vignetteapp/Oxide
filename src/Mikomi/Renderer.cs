@@ -10,6 +10,8 @@ namespace Mikomi
     /// </summary>
     public class Renderer : DisposableObject
     {
+        private static Renderer current;
+
         public readonly Session Session;
 
         internal Renderer(IntPtr handle)
@@ -21,25 +23,27 @@ namespace Mikomi
         /// Create the Ultralight Renderer directly.
         /// </summary>
         /// <remarks>
-        /// Unlike ulCreateApp(), this does not use any native windows for drawing
+        /// Unlike <see cref="App"/>, this does not use any native windows for drawing
         /// and allows you to manage your own runloop and painting. This method is
         /// recommended for those wishing to integrate the library into a game.
         /// <br/>
         /// You should only call this once per process lifetime.
         /// <br/>
-        /// You shoud set up your platform handlers (eg, ulPlatformSetLogger,
-        /// ulPlatformSetFileSystem, etc.) before calling this.
+        /// You shoud set up your platform handlers before calling this.
         /// You will also need to define a font loader before calling this--
-        /// as of this writing (v1.2) the only way to do this in C API is by calling
-        /// ulEnablePlatformFontLoader() (available in <AppCore/CAPI.h>).
+        /// call <see cref="AppCore.EnablePlatformFontLoader"/>.
         /// <br/>
-        /// You should not call this if you are using ulCreateApp(), it
+        /// You should not call this if you are creating your own app as it
         /// creates its own renderer and provides default implementations for
         /// various platform handlers automatically.
         /// </remarks>
         public Renderer(Config config)
             : base(Ultralight.ulCreateRenderer(config.Handle))
         {
+            if (current != null)
+                throw new InvalidOperationException($"An instance of {nameof(Renderer)} already exists.");
+
+            current = this;
             Session = new Session(Ultralight.ulDefaultSession(Handle));
         }
 
@@ -71,7 +75,10 @@ namespace Mikomi
             => Ultralight.ulLogMemoryUsage(Handle);
 
         protected override void DisposeUnmanaged()
-            => Ultralight.ulDestroyRenderer(Handle);
+        {
+            Ultralight.ulDestroyRenderer(Handle);
+            current = null;
+        }
     }
 
     public partial class Ultralight

@@ -86,6 +86,13 @@ namespace Mikomi.Apps
         /// </summary>
         public bool HasFocus => AppCore.ulOverlayHasFocus(Handle);
 
+        internal Overlay(Window window, int width, int height, int x, int y)
+            : base(AppCore.ulCreateOverlay(window.Handle, (uint)width, (uint)height, x, y))
+        {
+            View = new View(AppCore.ulOverlayGetView(Handle));
+            Window = window;
+        }
+
         internal Overlay(Window window, View view, int x, int y)
             : base(AppCore.ulCreateOverlayWithView(window.Handle, view.Handle, x, y))
         {
