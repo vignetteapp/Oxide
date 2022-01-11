@@ -17,13 +17,7 @@ namespace Mikomi
         public string CachePath
         {
             get => cachePath;
-            set
-            {
-                if (value == cachePath)
-                    return;
-
-                Ultralight.ulConfigSetCachePath(Handle, cachePath = value);
-            }
+            set => Ultralight.ulConfigSetCachePath(Handle, cachePath = value);
         }
 
         private FaceWinding faceWinding;
@@ -37,13 +31,7 @@ namespace Mikomi
         public FaceWinding FaceWinding
         {
             get => faceWinding;
-            set
-            {
-                if (value == faceWinding)
-                    return;
-
-                Ultralight.ulConfigSetFaceWinding(Handle, faceWinding = value);
-            }
+            set => Ultralight.ulConfigSetFaceWinding(Handle, faceWinding = value);
         }
 
         private FontHinting fontHinting;
@@ -54,13 +42,7 @@ namespace Mikomi
         public FontHinting FontHinting
         {
             get => fontHinting;
-            set
-            {
-                if (value == fontHinting)
-                    return;
-
-                Ultralight.ulConfigSetFontHinting(Handle, fontHinting = value);
-            }
+            set => Ultralight.ulConfigSetFontHinting(Handle, fontHinting = value);
         }
 
         private double fontGamma;
@@ -74,13 +56,7 @@ namespace Mikomi
         public double FontGamma
         {
             get => fontGamma;
-            set
-            {
-                if (value == fontGamma)
-                    return;
-
-                Ultralight.ulConfigSetFontGamma(Handle, fontGamma = value);
-            }
+            set => Ultralight.ulConfigSetFontGamma(Handle, fontGamma = value);
         }
 
         private string userStylesheet;
@@ -93,13 +69,7 @@ namespace Mikomi
         public string UserStylesheet
         {
             get => userStylesheet;
-            set
-            {
-                if (value == userStylesheet)
-                    return;
-
-                Ultralight.ulConfigSetUserStyleSheet(Handle, userStylesheet = value);
-            }
+            set => Ultralight.ulConfigSetUserStyleSheet(Handle, userStylesheet = value);
         }
 
         private bool forceRepaint;
@@ -114,13 +84,7 @@ namespace Mikomi
         public bool ForceRepaint
         {
             get => forceRepaint;
-            set
-            {
-                if (value == forceRepaint)
-                    return;
-
-                Ultralight.ulConfigSetForceRepaint(Handle, forceRepaint = value);
-            }
+            set => Ultralight.ulConfigSetForceRepaint(Handle, forceRepaint = value);
         }
 
         private double animationTimerDelay;
@@ -134,13 +98,7 @@ namespace Mikomi
         public double AnimationTimerDelay
         {
             get => animationTimerDelay;
-            set
-            {
-                if (value == animationTimerDelay)
-                    return;
-
-                Ultralight.ulConfigSetAnimationTimerDelay(Handle, animationTimerDelay = value);
-            }
+            set => Ultralight.ulConfigSetAnimationTimerDelay(Handle, animationTimerDelay = value);
         }
 
         private double scrollTimerDelay;
@@ -154,13 +112,7 @@ namespace Mikomi
         public double ScrollTimerDelay
         {
             get => scrollTimerDelay;
-            set
-            {
-                if (value == scrollTimerDelay)
-                    return;
-
-                Ultralight.ulConfigSetScrollTimerDelay(Handle, scrollTimerDelay = value);
-            }
+            set => Ultralight.ulConfigSetScrollTimerDelay(Handle, scrollTimerDelay = value);
         }
 
         private double recycleDelay;
@@ -174,13 +126,7 @@ namespace Mikomi
         public double RecycleDelay
         {
             get => recycleDelay;
-            set
-            {
-                if (value == recycleDelay)
-                    return;
-
-                Ultralight.ulConfigSetRecycleDelay(Handle, recycleDelay = value);
-            }
+            set => Ultralight.ulConfigSetRecycleDelay(Handle, recycleDelay = value);
         }
 
         private uint memoryCacheSize;
@@ -194,13 +140,7 @@ namespace Mikomi
         public uint MemoryCacheSize
         {
             get => memoryCacheSize;
-            set
-            {
-                if (value == memoryCacheSize)
-                    return;
-
-                Ultralight.ulConfigSetMemoryCacheSize(Handle, memoryCacheSize = value);
-            }
+            set => Ultralight.ulConfigSetMemoryCacheSize(Handle, memoryCacheSize = value);
         }
 
         private uint pageCacheSize;
@@ -213,13 +153,7 @@ namespace Mikomi
         public uint PageCacheSize
         {
             get => pageCacheSize;
-            set
-            {
-                if (value == pageCacheSize)
-                    return;
-
-                Ultralight.ulConfigSetPageCacheSize(Handle, pageCacheSize = value);
-            }
+            set => Ultralight.ulConfigSetPageCacheSize(Handle, pageCacheSize = value);
         }
 
         private uint overrideRAMSize;
@@ -235,13 +169,7 @@ namespace Mikomi
         public uint OverrideRAMSize
         {
             get => overrideRAMSize;
-            set
-            {
-                if (value == overrideRAMSize)
-                    return;
-
-                Ultralight.ulConfigSetOverrideRAMSize(Handle, overrideRAMSize = value);
-            }
+            set => Ultralight.ulConfigSetOverrideRAMSize(Handle, overrideRAMSize = value);
         }
 
         private uint minLargeHeapSize;
@@ -253,13 +181,7 @@ namespace Mikomi
         public uint MinLargeHeapSize
         {
             get => minLargeHeapSize;
-            set
-            {
-                if (value == minLargeHeapSize)
-                    return;
-
-                Ultralight.ulConfigSetMinLargeHeapSize(Handle, minLargeHeapSize = value);
-            }
+            set => Ultralight.ulConfigSetMinLargeHeapSize(Handle, minLargeHeapSize = value);
         }
 
         private uint minSmallHeapSize;
@@ -271,13 +193,7 @@ namespace Mikomi
         public uint MinSmallHeapSize
         {
             get => minSmallHeapSize;
-            set
-            {
-                if (value == minSmallHeapSize)
-                    return;
-
-                Ultralight.ulConfigSetMinSmallHeapSize(Handle, minSmallHeapSize = value);
-            }
+            set => Ultralight.ulConfigSetMinSmallHeapSize(Handle, minSmallHeapSize = value);
         }
 
         /// <summary>
