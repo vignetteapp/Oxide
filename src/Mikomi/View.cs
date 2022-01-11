@@ -2,7 +2,9 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Mikomi.Graphics;
+using Mikomi.Graphics.Drivers;
 using Mikomi.Input;
+using Mikomi.Interop;
 using Mikomi.Javascript;
 
 namespace Mikomi
@@ -120,8 +122,8 @@ namespace Mikomi
         {
         }
 
-        public View(Renderer renderer, uint width, uint height, ViewConfig config, Session session)
-            : base(Ultralight.ulCreateView(renderer.Handle, width, height, config.Handle, session.Handle))
+        public View(Renderer renderer, int width, int height, ViewConfig config, Session session)
+            : base(Ultralight.ulCreateView(renderer.Handle, (uint)width, (uint)height, config.Handle, session.Handle))
         {
             isAccelerated = config.IsAccelerated;
         }

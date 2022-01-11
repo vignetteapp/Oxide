@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Mikomi.Graphics.Bitmaps;
 
-namespace Mikomi.Graphics
+namespace Mikomi.Graphics.Drivers
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct RenderTarget

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using Mikomi.Interop;
 
 namespace Mikomi
 {
@@ -19,13 +20,7 @@ namespace Mikomi
         public bool IsAccelerated
         {
             get => isAccelerated;
-            set
-            {
-                if (value == IsAccelerated)
-                    return;
-
-                Ultralight.ulViewConfigSetIsAccelerated(Handle, isAccelerated = value);
-            }
+            set => Ultralight.ulViewConfigSetIsAccelerated(Handle, isAccelerated = value);
         }
 
         private bool isTransparent;
@@ -36,13 +31,7 @@ namespace Mikomi
         public bool IsTransparent
         {
             get => isTransparent;
-            set
-            {
-                if (value == IsTransparent)
-                    return;
-
-                Ultralight.ulViewConfigSetIsTransparent(Handle, isTransparent = value);
-            }
+            set => Ultralight.ulViewConfigSetIsTransparent(Handle, isTransparent = value);
         }
 
         private bool initialFocus;
@@ -50,13 +39,15 @@ namespace Mikomi
         public bool InitialFocus
         {
             get => initialFocus;
-            set
-            {
-                if (value == InitialFocus)
-                    return;
+            set => Ultralight.ulViewConfigSetInitialFocus(Handle, initialFocus = value);
+        }
 
-                Ultralight.ulViewConfigSetInitialFocus(Handle, initialFocus = value);
-            }
+        private double initialDeviceScale;
+
+        public double InitialDeviceScale
+        {
+            get => initialDeviceScale;
+            set => Ultralight.ulViewConfigSetInitialDeviceScale(Handle, initialDeviceScale = value);
         }
 
         private bool enableImages;
@@ -69,13 +60,7 @@ namespace Mikomi
         public bool EnableImages
         {
             get => enableImages;
-            set
-            {
-                if (value == enableImages)
-                    return;
-
-                Ultralight.ulViewConfigSetEnableImages(Handle, enableImages = value);
-            }
+            set => Ultralight.ulViewConfigSetEnableImages(Handle, enableImages = value);
         }
 
         private bool enableJavaScript;
@@ -88,13 +73,7 @@ namespace Mikomi
         public bool EnableJavaScript
         {
             get => enableJavaScript;
-            set
-            {
-                if (value == enableJavaScript)
-                    return;
-
-                Ultralight.ulViewConfigSetEnableJavaScript(Handle, enableJavaScript = value);
-            }
+            set => Ultralight.ulViewConfigSetEnableJavaScript(Handle, enableJavaScript = value);
         }
 
         private string fontFamilyStandard;
@@ -107,13 +86,7 @@ namespace Mikomi
         public string FontFamilyStandard
         {
             get => fontFamilyStandard;
-            set
-            {
-                if (value == fontFamilyStandard)
-                    return;
-
-                Ultralight.ulViewConfigSetFontFamilyStandard(Handle, fontFamilyStandard = value);
-            }
+            set => Ultralight.ulViewConfigSetFontFamilyStandard(Handle, fontFamilyStandard = value);
         }
 
         private string fontFamilyFixed;
@@ -126,13 +99,7 @@ namespace Mikomi
         public string FontFamilyFixed
         {
             get => fontFamilyFixed;
-            set
-            {
-                if (value == fontFamilyFixed)
-                    return;
-
-                Ultralight.ulViewConfigSetFontFamilyFixed(Handle, fontFamilyFixed = value);
-            }
+            set => Ultralight.ulViewConfigSetFontFamilyFixed(Handle, fontFamilyFixed = value);
         }
 
         private string fontFamilySerif;
@@ -145,13 +112,7 @@ namespace Mikomi
         public string FontFamilySerif
         {
             get => fontFamilySerif;
-            set
-            {
-                if (value == fontFamilySerif)
-                    return;
-
-                Ultralight.ulViewConfigSetFontFamilySerif(Handle, fontFamilySerif = value);
-            }
+            set => Ultralight.ulViewConfigSetFontFamilySerif(Handle, fontFamilySerif = value);
         }
 
         private string fontFamilySansSerif;
@@ -164,13 +125,7 @@ namespace Mikomi
         public string FontFamilySansSerif
         {
             get => fontFamilySansSerif;
-            set
-            {
-                if (value == fontFamilySansSerif)
-                    return;
-
-                Ultralight.ulViewConfigSetFontFamilySansSerif(Handle, fontFamilySansSerif = value);
-            }
+            set => Ultralight.ulViewConfigSetFontFamilySansSerif(Handle, fontFamilySansSerif = value);
         }
 
         private string userAgent;
@@ -183,13 +138,7 @@ namespace Mikomi
         public string UserAgent
         {
             get => userAgent;
-            set
-            {
-                if (value == userAgent)
-                    return;
-
-                Ultralight.ulViewConfigSetFontFamilyUserAgent(Handle, userAgent = value);
-            }
+            set => Ultralight.ulViewConfigSetFontFamilyUserAgent(Handle, userAgent = value);
         }
 
         public ViewConfig()

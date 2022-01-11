@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Mikomi.Graphics;
+using Mikomi.Interop;
 
 namespace Mikomi
 {

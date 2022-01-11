@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Mikomi.Graphics;
 using Mikomi.Graphics.Fonts;
+using Mikomi.Interop;
 
 namespace Mikomi
 {

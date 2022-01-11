@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Mikomi
+namespace Mikomi.Interop
 {
     internal class ULStringMarshaler : ICustomMarshaler
     {
@@ -38,6 +38,10 @@ namespace Mikomi
         public object MarshalNativeToManaged(IntPtr pNativeData)
             => Ultralight.ulStringGetData(pNativeData);
     }
+}
+
+namespace Mikomi
+{
 
 #pragma warning disable CA2101 // Custom marshaler is used
 

@@ -12,6 +12,11 @@ namespace Mikomi.Graphics
     {
         public readonly Session Session;
 
+        internal Renderer(IntPtr handle)
+            : base(handle, false)
+        {
+        }
+
         /// <summary>
         /// Create the Ultralight Renderer directly.
         /// </summary>

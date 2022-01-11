@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Mikomi.Input;
+using Mikomi.Interop;
 
 namespace Mikomi.Input
 {
