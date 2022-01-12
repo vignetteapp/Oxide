@@ -1,6 +1,6 @@
 using System;
 
-namespace Mikomi.Platform
+namespace Mikomi.Platforms
 {
     public interface IFileSystem
     {

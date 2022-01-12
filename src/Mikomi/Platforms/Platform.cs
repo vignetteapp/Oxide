@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 using Mikomi.Graphics;
 using Mikomi.Graphics.Bitmaps;
 using Mikomi.Graphics.Drivers;
-using Mikomi.Platform;
+using Mikomi.Platforms;
 
-namespace Mikomi.Platform
+namespace Mikomi.Platforms
 {
     public class Platform
     {
@@ -14,9 +14,13 @@ namespace Mikomi.Platform
 
         private static Logger logger;
         private static GPUDriver gpuDriver;
+        private static IGPUDriver gpuDriverImpl;
         private static Clipboard plClipboard;
+        private static IClipboard plClipboardImpl;
         private static FileSystem plFileSystem;
+        private static IFileSystem plFileSystemImpl;
         private static SurfaceDefinition surfaceDefinition;
+        private static ISurfaceDefinition surfaceImpl;
 
 #pragma warning restore IDE0052
 
@@ -34,7 +38,9 @@ namespace Mikomi.Platform
         /// </summary>
         /// <param name="definition">The surface definition to use.</param>
         public static void SetSurfaceDefinition(ISurfaceDefinition definition)
-            => Ultralight.ulPlatformSetSurfaceDefinition(surfaceDefinition = new SurfaceDefinition
+        {
+            surfaceImpl = definition;
+            Ultralight.ulPlatformSetSurfaceDefinition(surfaceDefinition = new SurfaceDefinition
             {
                 Create = (w, h) =>
                 {
@@ -54,6 +60,7 @@ namespace Mikomi.Platform
                 UnlockPixels = _ => definition.UnlockPixels(),
                 Resize = (_, w, h) => definition.Resize(w, h),
             });
+        }
 
         /// <summary>
         /// Sets the GPU Driver.
@@ -62,7 +69,9 @@ namespace Mikomi.Platform
         /// </summary>
         /// <param name="driver">The driver to use.</param>
         public static void SetGPUDriver(IGPUDriver driver)
-            => Ultralight.ulPlatformSetGPUDriver(gpuDriver = new GPUDriver
+        {
+            gpuDriverImpl = driver;
+            Ultralight.ulPlatformSetGPUDriver(gpuDriver = new GPUDriver
             {
                 BeginSynchronize = driver.BeginSynchronize,
                 EndSynchronize = driver.EndSynchronize,
@@ -78,13 +87,16 @@ namespace Mikomi.Platform
                 CreateRenderBuffer = driver.CreateRenderBuffer,
                 DestroyRenderBuffer = driver.DestroyRenderBuffer,
             });
+        }
 
         /// <summary>
         /// Sets the platform file system.
         /// </summary>
         /// <param name="filesystem">The filesystem to use.</param>
         public static void SetFileSystem(IFileSystem filesystem)
-            => Ultralight.ulPlatformSetFileSystem(plFileSystem = new FileSystem
+        {
+            plFileSystemImpl = filesystem;
+            Ultralight.ulPlatformSetFileSystem(plFileSystem = new FileSystem
             {
                 OpenFile = (p, _) => filesystem.OpenFile(p),
                 CloseFile = filesystem.CloseFile,
@@ -98,18 +110,22 @@ namespace Mikomi.Platform
                     return filesystem.ReadFile(h, new Span<byte>(data));
                 },
             });
+        }
 
         /// <summary>
         /// Sets the platform clipboard.
         /// </summary>
         /// <param name="clipboard">The clipboard to use.</param>
         public static void SetClipboard(IClipboard clipboard)
-            => Ultralight.ulPlatformSetClipboard(plClipboard = new Clipboard
+        {
+            plClipboardImpl = clipboard;
+            Ultralight.ulPlatformSetClipboard(plClipboard = new Clipboard
             {
                 Clear = clipboard.Clear,
                 WritePlainText = clipboard.SetText,
                 ReadPlainText = (out string str) => str = clipboard.GetText(),
             });
+        }
     }
 }
 

@@ -125,7 +125,7 @@ namespace Mikomi.Apps
         /// <summary>
         /// Invoked when the window is resizing.
         /// </summary>
-        public event ResizeEventHandler OnResize;
+        public event EventHandler<ResizeEventArgs> OnResize;
 
         private ResizeCallback resize;
         private CloseCallback close;
@@ -204,8 +204,6 @@ namespace Mikomi.Apps
         protected override void DisposeUnmanaged()
             => AppCore.ulDestroyWindow(Handle);
     }
-
-    public delegate void ResizeEventHandler(object sender, ResizeEventArgs args);
 
     public class ResizeEventArgs : EventArgs
     {

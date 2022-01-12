@@ -141,8 +141,11 @@ namespace Mikomi
             set => Ultralight.ulViewConfigSetFontFamilyUserAgent(Handle, userAgent = value);
         }
 
+        /// <summary>
+        /// Creates a view config with default values.
+        /// </summary>
         public ViewConfig()
-            : base(Ultralight.ulCreateConfig())
+            : base(Ultralight.ulCreateViewConfig())
         {
         }
 

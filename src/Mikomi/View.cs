@@ -14,11 +14,11 @@ namespace Mikomi
         private readonly bool isAccelerated;
 
         /// <summary>
-        /// Get current URL. Set loads a new URL.
+        /// Get current loaded URL. Set loads a new URL.
         /// </summary>
         public string URL
         {
-            get => Ultralight.ulViewGetUrl(Handle);
+            get => Ultralight.ulViewGetURL(Handle);
             set => Ultralight.ulViewLoadURL(Handle, value);
         }
 
@@ -95,6 +95,7 @@ namespace Mikomi
 
         /// <summary>
         /// Gets or sets whether or not a view should be painted during the next call to <see cref="Renderer.Render"/>.
+        /// Setting this to true forces a repaint.
         /// </summary>
         public bool NeedsPaint
         {
@@ -117,16 +118,128 @@ namespace Mikomi
         /// </summary>
         public bool CanGoBack => Ultralight.ulViewCanGoBack(Handle);
 
+        /// <summary>
+        /// Called whenever the <see cref="Title"/> is changed.
+        /// </summary>
+        public event EventHandler<ViewPropertyChangedEventArgs> OnTitleChanged;
+
+        /// <summary>
+        /// Called whenever the <see cref="URL"/> is changed.
+        /// </summary>
+        public event EventHandler<ViewPropertyChangedEventArgs> OnURLChanged;
+
+        /// <summary>
+        /// Called whenever the tooltip is changed.
+        /// </summary>
+        public event EventHandler<ViewPropertyChangedEventArgs> OnTooltipChanged;
+
+        /// <summary>
+        /// Called whenever the cursor is changed.
+        /// </summary>
+        public event EventHandler<ViewCursorChangedEventArgs> OnCursorChanged;
+
+        /// <summary>
+        /// Called whenever a new console message has been logged.
+        /// </summary>
+        public event EventHandler<ViewAddConsoleMessageEventArgs> OnConsoleMessageLogged;
+
+        /// <summary>
+        /// Called whenever a child view is created (i.e. popups).
+        /// </summary>
+        public event EventHandler OnChildViewCreated;
+
+        /// <summary>
+        /// Called whenever loading has started.
+        /// </summary>
+        public event EventHandler<ViewLoadEventArgs> OnBeginLoading;
+
+        /// <summary>
+        /// Called whenever a page has successfully been loaded.
+        /// </summary>
+        public event EventHandler<ViewLoadEventArgs> OnFinishLoading;
+
+        /// <summary>
+        /// Called whenever a page has failed loading.
+        /// </summary>
+        public event EventHandler<ViewLoadFailEventArgs> OnFailLoading;
+
+        /// <summary>
+        /// Called whenever the JavaScript Window object is ready.
+        /// </summary>
+        public event EventHandler<ViewLoadEventArgs> OnWindowObjectReady;
+
+        /// <summary>
+        /// Called whenever the page's DOM is ready.
+        /// </summary>
+        public event EventHandler<ViewLoadEventArgs> OnDOMReady;
+
+        /// <summary>
+        /// Called whenever the history is changed. Not to confuse with <see cref="OnURLChanged"/>.
+        /// </summary>
+        public event EventHandler OnHistoryUpdated;
+
+        private ChangePropertyCallback titleChanged;
+        private ChangePropertyCallback tooltipChanged;
+        private ChangePropertyCallback urlChanged;
+        private ChangeCursorCallback cursorChanged;
+        private AddConsoleMessageCallback consoleLogged;
+        private CreateChildViewCallback childCreated;
+        private LoadingCallback beginLoad;
+        private LoadingCallback finishLoad;
+        private LoadingCallback windowObjectReady;
+        private LoadingCallback domReady;
+        private FailLoadingCallback failLoad;
+        private UpdateHistoryCallback historyUpdate;
+
         internal View(IntPtr handle)
             : base(handle, true)
         {
+            Ultralight.ulViewSetUpdateHistoryCallback(handle, historyUpdate += handleHistoryUpdate, IntPtr.Zero);
+            Ultralight.ulViewSetBeginLoadingCallback(handle, beginLoad += handleLoadingBegin, IntPtr.Zero);
+            Ultralight.ulViewSetFinishLoadingCallback(handle, finishLoad += handleLoadingFinish, IntPtr.Zero);
+            Ultralight.ulViewSetFailLoadingCallback(handle, failLoad += handleLoadingFail, IntPtr.Zero);
+            Ultralight.ulViewSetWindowObjectReadyCallback(handle, windowObjectReady += handleReadyWindowObject, IntPtr.Zero);
+            Ultralight.ulViewSetDOMReadyCallback(handle, domReady += handleReadyDOM, IntPtr.Zero);
+            Ultralight.ulViewSetChangeTitleCallback(handle, titleChanged += handleTitleChange, IntPtr.Zero);
+            Ultralight.ulViewSetChangeURLCallback(handle, urlChanged += handleURLChange, IntPtr.Zero);
+            Ultralight.ulViewSetChangeTooltipCallback(handle, tooltipChanged += handleTooltipChange, IntPtr.Zero);
+            Ultralight.ulViewSetChangeCursorCallback(handle, cursorChanged += handleCursorChange, IntPtr.Zero);
+            Ultralight.ulViewSetAddConsoleMessageCallback(handle, consoleLogged += handleConsoleMessage, IntPtr.Zero);
+            Ultralight.ulViewSetCreateChildViewCallback(handle, childCreated += handleChildViewCreated, IntPtr.Zero);
         }
 
-        public View(Renderer renderer, int width, int height, ViewConfig config, Session session)
-            : base(Ultralight.ulCreateView(renderer.Handle, (uint)width, (uint)height, config.Handle, session.Handle))
+        /// <summary>
+        /// Creates a view.
+        /// </summary>
+        /// <param name="renderer">The renderer to use.</param>
+        /// <param name="width">The width of this view.</param>
+        /// <param name="height">The height of this view.</param>
+        /// <param name="config">The config to use for this view.</param>
+        /// <param name="session">The session to use for this view. Leave null to use <see cref="Renderer.Session"/></param>
+        public View(Renderer renderer, int width, int height, ViewConfig config, Session session = null)
+            : this(Ultralight.ulCreateView(renderer.Handle, (uint)width, (uint)height, config.Handle, session?.Handle ?? IntPtr.Zero))
         {
             isAccelerated = config.IsAccelerated;
         }
+
+        protected override void DisposeManaged()
+        {
+            historyUpdate -= handleHistoryUpdate;
+            beginLoad -= handleLoadingBegin;
+            finishLoad -= handleLoadingFinish;
+            failLoad -= handleLoadingFail;
+            windowObjectReady -= handleReadyWindowObject;
+            domReady -= handleReadyDOM;
+            titleChanged -= handleTitleChange;
+            tooltipChanged -= handleTooltipChange;
+            urlChanged -= handleURLChange;
+            cursorChanged -= handleCursorChange;
+            consoleLogged -= handleConsoleMessage;
+            childCreated -= handleChildViewCreated;
+        }
+
+        protected override void DisposeUnmanaged()
+            => Ultralight.ulDestroyView(Handle);
 
         /// <summary>
         /// Acquire the page's JSContext for use with JavaScriptCore API.
@@ -156,9 +269,7 @@ namespace Mikomi
         /// </summary>
         /// <param name="html">The html string to load.</param>
         public void LoadHTML(string html)
-        {
-            Ultralight.ulViewLoadHTML(Handle, html);
-        }
+            => Ultralight.ulViewLoadHTML(Handle, html);
 
         /// <summary>
         /// Navigate backwards in history
@@ -222,8 +333,6 @@ namespace Mikomi
 
         /// <summary>
         /// Fire a mouse event. The event is disposed after calling.
-        /// <br/>
-        /// Only <see cref="KeyEventType.Char"/> events actually generate text in input fields.
         /// </summary>
         public void FireMouseEvent(MouseEvent evt)
         {
@@ -233,6 +342,8 @@ namespace Mikomi
 
         /// <summary>
         /// Fire a keyboard event. The event is disposed after calling.
+        /// <br/>
+        /// Only <see cref="KeyEventType.Char"/> events actually generate text in input fields.
         /// </summary>
         public void FireKeyEvent(KeyEvent evt)
         {
@@ -248,6 +359,42 @@ namespace Mikomi
             Ultralight.ulViewFireScrollEvent(Handle, evt.Handle);
             evt.Dispose();
         }
+
+        private void handleTitleChange(IntPtr userData, IntPtr caller, string title)
+            => OnTitleChanged?.Invoke(this, new ViewPropertyChangedEventArgs(title));
+
+        private void handleTooltipChange(IntPtr userData, IntPtr caller, string tooltip)
+            => OnTooltipChanged?.Invoke(this, new ViewPropertyChangedEventArgs(tooltip));
+
+        private void handleURLChange(IntPtr userData, IntPtr caller, string url)
+            => OnURLChanged?.Invoke(this, new ViewPropertyChangedEventArgs(url));
+
+        private void handleCursorChange(IntPtr userData, IntPtr caller, CursorType cursor)
+            => OnCursorChanged?.Invoke(this, new ViewCursorChangedEventArgs(cursor));
+
+        private void handleConsoleMessage(IntPtr userData, IntPtr caller, ViewMessageSource source, ViewMessageLevel level, string message, uint line, uint column, string file)
+            => OnConsoleMessageLogged?.Invoke(this, new ViewAddConsoleMessageEventArgs(source, level, message, file, (int)line, (int)column));
+
+        private void handleChildViewCreated(IntPtr userData, IntPtr caller, string source, string destination, bool isPopup, RectI popupRect)
+            => OnChildViewCreated?.Invoke(this, new ViewChildCreatedEventArgs(source, destination, isPopup, popupRect));
+
+        private void handleLoadingBegin(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url)
+            => OnBeginLoading?.Invoke(this, new ViewLoadEventArgs(frameId, isMainFrame, url));
+
+        private void handleLoadingFinish(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url)
+            => OnFinishLoading?.Invoke(this, new ViewLoadEventArgs(frameId, isMainFrame, url));
+
+        private void handleReadyWindowObject(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url)
+            => OnWindowObjectReady?.Invoke(this, new ViewLoadEventArgs(frameId, isMainFrame, url));
+
+        private void handleReadyDOM(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url)
+            => OnDOMReady?.Invoke(this, new ViewLoadEventArgs(frameId, isMainFrame, url));
+
+        private void handleLoadingFail(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url, int errorCode)
+            => OnFailLoading?.Invoke(this, new ViewLoadFailEventArgs(frameId, isMainFrame, url, errorCode));
+
+        private void handleHistoryUpdate(IntPtr userData, IntPtr caller)
+            => OnHistoryUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     public static class ViewExtensions
@@ -289,17 +436,119 @@ namespace Mikomi
         Info,
     }
 
-    internal delegate void ChangeTitleCallback(IntPtr userData, IntPtr caller, IntPtr title);
-    internal delegate void ChangeTooltipCallback(IntPtr userData, IntPtr caller, IntPtr tooltip);
-    internal delegate void ChangeURLCallback(IntPtr userData, IntPtr caller, IntPtr url);
+    public class ViewLoadEventArgs : EventArgs
+    {
+        public ulong FrameID { get; }
+        public bool IsMainFrame { get; }
+        public string URL { get; }
+
+        public ViewLoadEventArgs(ulong frameID, bool isMainFrame, string url)
+        {
+            FrameID = frameID;
+            IsMainFrame = isMainFrame;
+            URL = url;
+        }
+    }
+
+    public class ViewLoadFailEventArgs : ViewLoadEventArgs
+    {
+        public int Status { get; }
+
+        public ViewLoadFailEventArgs(ulong frameID, bool isMainFrame, string url, int status)
+            : base(frameID, isMainFrame, url)
+        {
+            Status = status;
+        }
+    }
+
+    public class ViewAddConsoleMessageEventArgs : EventArgs
+    {
+        public ViewMessageSource Source { get; }
+        public ViewMessageLevel Level { get; }
+        public string Message { get; }
+        public string File { get; }
+        public int Line { get; }
+        public int Column { get; }
+
+        public ViewAddConsoleMessageEventArgs(ViewMessageSource source, ViewMessageLevel level, string message, string file, int line, int column)
+        {
+            Source = source;
+            Level = level;
+            Message = message;
+            File = file;
+            Line = line;
+            Column = column;
+        }
+    }
+
+    public class ViewPropertyChangedEventArgs : EventArgs
+    {
+        public string Value { get; }
+
+        public ViewPropertyChangedEventArgs(string value)
+        {
+            Value = value;
+        }
+    }
+
+    public class ViewCursorChangedEventArgs : EventArgs
+    {
+        public CursorType Cursor { get; }
+
+        public ViewCursorChangedEventArgs(CursorType cursor)
+        {
+            Cursor = cursor;
+        }
+    }
+
+    public class ViewChildCreatedEventArgs : EventArgs
+    {
+        public string Source { get; }
+        public string Destination { get; }
+        public bool IsPopup { get; }
+        public RectI PopupRect { get; }
+
+        public ViewChildCreatedEventArgs(string source, string destination, bool isPopup, RectI popupRect)
+        {
+            Source = source;
+            Destination = destination;
+            IsPopup = isPopup;
+            PopupRect = popupRect;
+        }
+    }
+
+    internal delegate void ChangePropertyCallback(
+        IntPtr userData, IntPtr caller,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string title
+    );
+
+    internal delegate void AddConsoleMessageCallback(
+        IntPtr userData, IntPtr caller, ViewMessageSource source, ViewMessageLevel level,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string message, uint lineNUmber, uint columnNumber,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string sourceId
+    );
+
+    internal delegate void CreateChildViewCallback(
+        IntPtr userData, IntPtr caller,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string openerUrl,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string targetUrl,
+        [MarshalAs(UnmanagedType.I1)] bool isPopup, RectI popupRect
+    );
+
+    internal delegate void LoadingCallback(
+        IntPtr userData, IntPtr caller, ulong frameId,
+        [MarshalAs(UnmanagedType.I1)] bool isMainFrame,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string url
+    );
+
+    internal delegate void FailLoadingCallback(
+        IntPtr userData, IntPtr caller, ulong frameId,
+        [MarshalAs(UnmanagedType.I1)] bool isMainFrame,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string errorDomain,
+        int errorCode
+    );
+
     internal delegate void ChangeCursorCallback(IntPtr userData, IntPtr caller, CursorType cursor);
-    internal delegate void AddConsoleMessageCallback(IntPtr userData, IntPtr caller, ViewMessageSource source, ViewMessageLevel level, IntPtr message, uint lineNUmber, uint columnNumber, IntPtr sourceId);
-    internal delegate void CreateChildViewCallback(IntPtr userData, IntPtr caller, IntPtr openerUrl, IntPtr targetUrl, [MarshalAs(UnmanagedType.I1)] bool isPopup, RectI popupRect);
-    internal delegate void BeginLoadingCallback(IntPtr userData, IntPtr caller, ulong frameId, [MarshalAs(UnmanagedType.I1)] bool isMainFrame, IntPtr url);
-    internal delegate void FinishLoadingCallback(IntPtr userData, IntPtr caller, ulong frameId, [MarshalAs(UnmanagedType.I1)] bool isMainFrame, IntPtr url);
-    internal delegate void FailLoadingCallback(IntPtr userData, IntPtr caller, ulong frameId, [MarshalAs(UnmanagedType.I1)] bool isMainFrame, IntPtr errorDomain, int errorCode);
-    internal delegate void WindowObjectReadyCallback(IntPtr userData, IntPtr caller, ulong frameId, [MarshalAs(UnmanagedType.I1)] bool isMainFrame, IntPtr url);
-    internal delegate void DOMReadyCallback(IntPtr userData, IntPtr caller, ulong frameId, [MarshalAs(UnmanagedType.I1)] bool isMainFrame, IntPtr url);
     internal delegate void UpdateHistoryCallback(IntPtr userData, IntPtr caller);
 
 #pragma warning disable CA2101 // Custom marshaler is used
@@ -314,7 +563,7 @@ namespace Mikomi
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
-        internal static extern string ulViewGetUrl(IntPtr view);
+        internal static extern string ulViewGetURL(IntPtr view);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
@@ -411,34 +660,40 @@ namespace Mikomi
         internal static extern void ulViewFireScrollEvent(IntPtr view, IntPtr scrollEvent);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeTitleCallBack(IntPtr view, ChangeTitleCallback callback, IntPtr userData);
+        internal static extern void ulViewSetChangeTitleCallback(IntPtr view, ChangePropertyCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeTooltipChangeTooltipCallback(IntPtr view, ChangeTooltipCallback callback, IntPtr userData);
+        internal static extern void ulViewSetChangeURLCallback(IntPtr view, ChangePropertyCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeCursorCallBack(IntPtr view, ChangeCursorCallback callback, IntPtr userData);
+        internal static extern void ulViewSetChangeTooltipCallback(IntPtr view, ChangePropertyCallback callback, IntPtr userData);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void ulViewSetChangeCursorCallback(IntPtr view, ChangeCursorCallback callback, IntPtr userData);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void ulViewSetCreateChildViewCallback(IntPtr view, CreateChildViewCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void ulViewSetAddConsoleMessageCallback(IntPtr view, AddConsoleMessageCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetBeginLoadingCallBack(IntPtr view, BeginLoadingCallback callback, IntPtr userData);
+        internal static extern void ulViewSetBeginLoadingCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetFinishLoadingCallBack(IntPtr view, FinishLoadingCallback callback, IntPtr userData);
+        internal static extern void ulViewSetFinishLoadingCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetFailLoadingCallBack(IntPtr view, FailLoadingCallback callback, IntPtr userData);
+        internal static extern void ulViewSetFailLoadingCallback(IntPtr view, FailLoadingCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetWindowObjectReadyCallBack(IntPtr view, WindowObjectReadyCallback callback, IntPtr userData);
+        internal static extern void ulViewSetWindowObjectReadyCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetDOMReadyCallBack(IntPtr view, DOMReadyCallback callback, IntPtr userData);
+        internal static extern void ulViewSetDOMReadyCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetUpdateHistoryCallBack(IntPtr view, UpdateHistoryCallback callback, IntPtr userData);
+        internal static extern void ulViewSetUpdateHistoryCallback(IntPtr view, UpdateHistoryCallback callback, IntPtr userData);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulViewSetNeedsPaint(IntPtr view, [MarshalAs(UnmanagedType.I1)] bool needsPaint);

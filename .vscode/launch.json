@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "App Example",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/examples/Mikomi.Examples.App/bin/Debug/net6.0/Mikomi.Examples.App.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/examples/Mikomi.Examples.App",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Custom Surface Example (Windows Only)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/examples/Mikomi.Examples.CustomSurface/bin/Debug/net5.0-windows/Mikomi.Examples.CustomSurface.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/examples/Mikomi.Examples.CustomSurface",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}

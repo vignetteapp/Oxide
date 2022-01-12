@@ -5,7 +5,7 @@ namespace Mikomi.Apps
 {
     public class App : DisposableObject
     {
-        private static App current;
+        internal static App Current { get; private set; }
 
         /// <summary>
         /// The underlying Renderer instance.
@@ -17,11 +17,12 @@ namespace Mikomi.Apps
         /// </summary>
         public readonly Monitor Monitor;
 
-#pragma warning disable IDE0052 // Holding reference to protect from GC
+        /// <summary>
+        /// Called every frame while this app is running.
+        /// </summary>
+        public event EventHandler OnUpdate;
 
-        private readonly AppUpdateCallback updateCallback;
-
-#pragma warning restore IDE0052
+        private AppUpdateCallback updateCallback;
 
         /// <summary>
         /// Create the app singleton
@@ -40,14 +41,17 @@ namespace Mikomi.Apps
         public App(AppConfig appConfig = null, Config rendererConfig = null)
             : base(AppCore.ulCreateApp(appConfig?.Handle ?? IntPtr.Zero, rendererConfig?.Handle ?? IntPtr.Zero))
         {
-            if (current != null)
+            if (Current != null)
                 throw new InvalidOperationException($"An instance of {nameof(App)} already exists.");
 
-            current = this;
+            if (Renderer.Current != null)
+                throw new InvalidOperationException($"An instance of {nameof(Renderer)} already exists.");
+
+            Current = this;
 
             Renderer = new Renderer(AppCore.ulAppGetRenderer(Handle));
             Monitor = new Monitor(AppCore.ulAppGetMainMonitor(Handle), this);
-            AppCore.ulAppSetUpdateCallback(Handle, updateCallback = (_) => Update(), IntPtr.Zero);
+            AppCore.ulAppSetUpdateCallback(Handle, updateCallback += handleAppUpdate, IntPtr.Zero);
         }
 
         /// <summary>
@@ -67,10 +71,21 @@ namespace Mikomi.Apps
         /// </summary>
         public void Quit() => AppCore.ulAppQuit(Handle);
 
+        protected override void DisposeManaged()
+        {
+            updateCallback -= handleAppUpdate;
+        }
+
         protected override void DisposeUnmanaged()
         {
             AppCore.ulDestroyApp(Handle);
-            current = null;
+            Current = null;
+        }
+
+        private void handleAppUpdate(IntPtr userData)
+        {
+            Update();
+            OnUpdate?.Invoke(this, EventArgs.Empty);
         }
     }
 

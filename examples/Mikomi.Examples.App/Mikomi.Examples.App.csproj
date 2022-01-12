@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="assets\**\*" CopyToOutputDirectory="PreserveNewest" Link="assets\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\assets\**\*" CopyToOutputDirectory="PreserveNewest" Link="assets\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="..\..\src\Mikomi.Runtimes.Win_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <None Include="..\..\src\Mikomi.Runtimes.Linux_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <None Include="..\..\src\Mikomi.Runtimes.OSX_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />

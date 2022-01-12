@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Mikomi.Interop;
 
-namespace Mikomi.Platform
+namespace Mikomi.Platforms
 {
     internal delegate void ClipboardClearCallback();
     internal delegate void ClipboardReadPlainTextCallback([MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] out string text);

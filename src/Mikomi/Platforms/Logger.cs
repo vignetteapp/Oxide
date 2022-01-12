@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Mikomi.Interop;
 
-namespace Mikomi.Platform
+namespace Mikomi.Platforms
 {
     public delegate void LoggerMessageCallback(
         LogLevel level,

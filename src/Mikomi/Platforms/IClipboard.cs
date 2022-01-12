@@ -1,4 +1,4 @@
-namespace Mikomi.Platform
+namespace Mikomi.Platforms
 {
     public interface IClipboard
     {

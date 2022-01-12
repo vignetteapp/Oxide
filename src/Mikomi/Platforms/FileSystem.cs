@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Mikomi.Interop;
 
-namespace Mikomi.Platform
+namespace Mikomi.Platforms
 {
     [return: MarshalAs(UnmanagedType.I1)]
     internal delegate bool FileSystemFileExistsCallback(

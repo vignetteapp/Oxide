@@ -19,12 +19,12 @@ namespace Mikomi
         /// <summary>
         /// Unique name identifying the session (used for unique disk path).
         /// </summary>
-        public string Name => Ultralight.ulSessionGetName(Handle);
+        // public string Name => Ultralight.ulSessionGetName(Handle);
 
         /// <summary>
         /// The disk path to write to (used by persistent sessions only).
         /// </summary>
-        public string DiskPath => Ultralight.ulSessionGetDiskPath(Handle);
+        // public string DiskPath => Ultralight.ulSessionGetDiskPath(Handle);
 
         internal Session(IntPtr handle)
             : base(handle, false)
@@ -58,14 +58,14 @@ namespace Mikomi
         internal static extern bool ulSessionIsPersistent(IntPtr session);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))]
         internal static extern string ulSessionGetName(IntPtr session);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern uint ulSessionGetId(IntPtr session);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
+        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))]
         internal static extern string ulSessionGetDiskPath(IntPtr session);
     }
 

@@ -23,9 +23,8 @@ namespace Mikomi.Input
         {
         }
 
-        public KeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,
-            string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
-            : base(createKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode, text, unmodifiedText, isKeypad, isAutoRepeat, isSystemKey))
+        public KeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
+            : base(Ultralight.ulCreateKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode, text, unmodifiedText, isKeypad, isAutoRepeat, isSystemKey))
         {
             Type = type;
             Modifiers = modifiers;
@@ -35,13 +34,6 @@ namespace Mikomi.Input
             IsKeypad = isKeypad;
             IsAutoRepeat = isAutoRepeat;
             IsSystemKey = isSystemKey;
-        }
-
-        private static IntPtr createKeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,
-            string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
-        {
-            return Ultralight.ulCreateKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode,
-                text, unmodifiedText, isKeypad, isAutoRepeat, isSystemKey);
         }
 
         /// <summary>

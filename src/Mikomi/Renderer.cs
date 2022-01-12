@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Mikomi.Apps;
 
 namespace Mikomi
 {
@@ -8,9 +9,9 @@ namespace Mikomi
     /// Manages the lifetime of all Views and coordinates all
     /// painting, rendering, network requests, and event dispatch.
     /// </summary>
-    public class Renderer : DisposableObject
+    public sealed class Renderer : DisposableObject
     {
-        private static Renderer current;
+        internal static Renderer Current { get; private set; }
 
         public readonly Session Session;
 
@@ -40,10 +41,13 @@ namespace Mikomi
         public Renderer(Config config)
             : base(Ultralight.ulCreateRenderer(config.Handle))
         {
-            if (current != null)
+            if (Current != null)
                 throw new InvalidOperationException($"An instance of {nameof(Renderer)} already exists.");
 
-            current = this;
+            if (App.Current != null)
+                throw new InvalidOperationException($"An instance of {nameof(App)} already exists.");
+
+            Current = this;
             Session = new Session(Ultralight.ulDefaultSession(Handle));
         }
 
@@ -77,7 +81,7 @@ namespace Mikomi
         protected override void DisposeUnmanaged()
         {
             Ultralight.ulDestroyRenderer(Handle);
-            current = null;
+            Current = null;
         }
     }
 
