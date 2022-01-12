@@ -23,7 +23,7 @@ namespace Mikomi.Input
         {
         }
 
-        public KeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode,string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
+        public KeyEvent(KeyEventType type, uint modifiers, int virtualKeyCode, int nativeKeyCode, string text, string unmodifiedText, bool isKeypad, bool isAutoRepeat, bool isSystemKey)
             : base(Ultralight.ulCreateKeyEvent(type, modifiers, virtualKeyCode, nativeKeyCode, text, unmodifiedText, isKeypad, isAutoRepeat, isSystemKey))
         {
             Type = type;
