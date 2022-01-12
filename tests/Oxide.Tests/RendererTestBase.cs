@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Reflection;
-using Oxide.Apps;
 using NUnit.Framework;
+using Oxide.Apps;
 
 namespace Oxide.Tests
 {

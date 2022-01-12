@@ -1,6 +1,6 @@
 using System;
-using Oxide.Interop;
 using NUnit.Framework;
+using Oxide.Interop;
 
 namespace Oxide.Tests
 {
