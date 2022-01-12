@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/examples/Mikomi.Examples.App/bin/Debug/net6.0/Mikomi.Examples.App.dll",
+            "program": "${workspaceFolder}/examples/Oxide.Examples.App/bin/Debug/net6.0/Oxide.Examples.App.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/examples/Mikomi.Examples.App",
+            "cwd": "${workspaceFolder}/examples/Oxide.Examples.App",
             "console": "internalConsole",
             "stopAtEntry": false
         },
@@ -17,9 +17,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/examples/Mikomi.Examples.CustomSurface/bin/Debug/net5.0-windows/Mikomi.Examples.CustomSurface.dll",
+            "program": "${workspaceFolder}/examples/Oxide.Examples.CustomSurface/bin/Debug/net5.0-windows/Oxide.Examples.CustomSurface.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/examples/Mikomi.Examples.CustomSurface",
+            "cwd": "${workspaceFolder}/examples/Oxide.Examples.CustomSurface",
             "console": "internalConsole",
             "stopAtEntry": false
         }
