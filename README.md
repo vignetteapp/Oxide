@@ -25,3 +25,5 @@ However, we also provide pre-built environments via Gitpod and GitHub Codespaces
 ## Copyright
 
 Oxide is Copyright &copy; The Vignette Authors, licensed under the [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause). See the LICENSE file for more details.
+
+Ultralight is Copyright &copy; Ultralight, Inc. Usage of this library constitutes to your agreement of the Ultralight EULA. See [Ultralight's Licensing](https://github.com/ultralight-ux/Ultralight#licensing) for more information.
