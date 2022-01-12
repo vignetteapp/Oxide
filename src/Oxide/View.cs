@@ -390,8 +390,8 @@ namespace Oxide
         private void handleReadyDOM(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url)
             => OnDOMReady?.Invoke(this, new ViewLoadEventArgs(frameId, isMainFrame, url));
 
-        private void handleLoadingFail(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url, int errorCode)
-            => OnFailLoading?.Invoke(this, new ViewLoadFailEventArgs(frameId, isMainFrame, url, errorCode));
+        private void handleLoadingFail(IntPtr userData, IntPtr caller, ulong frameId, bool isMainFrame, string url, string description, string errorDomain, int errorCode)
+            => OnFailLoading?.Invoke(this, new ViewLoadFailEventArgs(frameId, isMainFrame, url, description, errorDomain, errorCode));
 
         private void handleHistoryUpdate(IntPtr userData, IntPtr caller)
             => OnHistoryUpdated?.Invoke(this, EventArgs.Empty);
@@ -453,11 +453,15 @@ namespace Oxide
     public class ViewLoadFailEventArgs : ViewLoadEventArgs
     {
         public int Status { get; }
+        public string Description { get; }
+        public string ErrorDomain { get; }
 
-        public ViewLoadFailEventArgs(ulong frameID, bool isMainFrame, string url, int status)
+        public ViewLoadFailEventArgs(ulong frameID, bool isMainFrame, string url, string description, string errorDomain, int status)
             : base(frameID, isMainFrame, url)
         {
             Status = status;
+            Description = description;
+            ErrorDomain = errorDomain;
         }
     }
 
@@ -544,6 +548,8 @@ namespace Oxide
     internal delegate void FailLoadingCallback(
         IntPtr userData, IntPtr caller, ulong frameId,
         [MarshalAs(UnmanagedType.I1)] bool isMainFrame,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string url,
+        [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string description,
         [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string errorDomain,
         int errorCode
     );

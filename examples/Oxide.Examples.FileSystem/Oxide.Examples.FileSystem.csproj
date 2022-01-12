@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Oxide\Oxide.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\assets\**\*"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\assets\**\*" CopyToOutputDirectory="PreserveNewest" Link="assets\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\src\Oxide.Runtimes.Win_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <None Include="..\..\src\Oxide.Runtimes.Linux_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <None Include="..\..\src\Oxide.Runtimes.OSX_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+  </ItemGroup>
+
+</Project>

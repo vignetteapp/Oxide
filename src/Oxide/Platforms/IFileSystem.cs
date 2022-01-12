@@ -17,7 +17,7 @@ namespace Oxide.Platforms
         /// <param name="handle">The file's id.</param>
         /// <param name="data">The data to be read.</param>
         /// <returns>The length of bytes read or -1 on failure.</returns>
-        long ReadFile(uint handle, ReadOnlySpan<byte> data);
+        long ReadFile(uint handle, Span<byte> data);
 
         /// <summary>
         /// Called when a file is requested to be closed.

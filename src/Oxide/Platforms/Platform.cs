@@ -105,9 +105,10 @@ namespace Oxide.Platforms
                 GetMimeType = filesystem.GetMimeType,
                 ReadFromFile = (h, d, l) =>
                 {
-                    byte[] data = new byte[l];
-                    Marshal.Copy(d, data, 0, data.Length);
-                    return filesystem.ReadFile(h, new Span<byte>(data));
+                    Span<byte> span = stackalloc byte[(int)l];
+                    long length = filesystem.ReadFile(h, span);
+                    Marshal.Copy(span.ToArray(), 0, d, span.Length);
+                    return length;
                 },
             });
         }

@@ -13,13 +13,13 @@
             "stopAtEntry": false
         },
         {
-            "name": "Custom Surface Example (Windows Only)",
+            "name": "File System Example",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/examples/Oxide.Examples.CustomSurface/bin/Debug/net5.0-windows/Oxide.Examples.CustomSurface.dll",
+            "program": "${workspaceFolder}/examples/Oxide.Examples.FileSystem/bin/Debug/net5.0/Oxide.Examples.FileSystem.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/examples/Oxide.Examples.CustomSurface",
+            "cwd": "${workspaceFolder}/examples/Oxide.Examples.FileSystem",
             "console": "internalConsole",
             "stopAtEntry": false
         }

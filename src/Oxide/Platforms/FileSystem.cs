@@ -33,7 +33,7 @@ namespace Oxide.Platforms
         public FileSystemGetFileSizeCallback GetFileSize;
         public FileSystemGetFileMimeTypeCallback GetMimeType;
         public FileSystemOpenFileCallback OpenFile;
-        public FileSystemReadFromFileCallback ReadFromFile;
         public FileSystemCloseFileCallback CloseFile;
+        public FileSystemReadFromFileCallback ReadFromFile;
     }
 }
