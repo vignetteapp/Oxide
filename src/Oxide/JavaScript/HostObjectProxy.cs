@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Oxide.JavaScript.Objects;
@@ -80,7 +81,16 @@ namespace Oxide.JavaScript
                 return context.Converter.ConvertHostObject(property.GetValue(hostObj));
 
             if (member is MethodInfo method)
-                return context.Converter.ConvertHostObject(method);
+            {
+                var paramterTypes = method.GetParameters().Select(p => p.ParameterType);
+                var returnType = method.ReturnType;
+
+                Type delType = returnType == System.Void
+                    ? Expression.GetActionType(paramterTypes.ToArray())
+                    : Expression.GetFuncType(paramterTypes.Append(returnType).ToArray());
+
+                return context.Converter.ConvertHostObject(method.CreateDelegate(delType, hostObj));
+            }
 
             return context.Converter.ConvertHostObject(Undefined.Value);
         }
