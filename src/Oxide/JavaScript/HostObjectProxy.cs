@@ -108,6 +108,7 @@ namespace Oxide.JavaScript
                     return false;
 
                 field.SetValue(hostObj, value);
+                return true;
             }
 
             if (member is PropertyInfo property && property.CanWrite)
@@ -118,6 +119,7 @@ namespace Oxide.JavaScript
                     return false;
 
                 property.SetValue(hostObj, value);
+                return true;
             }
 
             return false;
