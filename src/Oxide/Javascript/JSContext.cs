@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Oxide.JavaScript.Interop;
+using Oxide.JavaScript.Objects;
 
-namespace Oxide.Javascript
+namespace Oxide.JavaScript
 {
     public class JSContext : DisposableObject
     {
@@ -10,83 +14,66 @@ namespace Oxide.Javascript
         /// </summary>
         public readonly JSObject Global;
 
-        /// <summary>
-        /// Gets the context group for this <see cref="JSContext"/>.
-        /// </summary>
-        public readonly JSContextGroup Group;
+        internal readonly JSValueRefConverter Converter;
+        internal readonly HostObjectProxy Proxy;
 
-        /// <summary>
-        /// The Javascript undefined value.
-        /// </summary>
-        public readonly JSUndefined Undefined;
-
-        /// <summary>
-        /// The Javascript null value.
-        /// </summary>
-        public readonly JSNull Null;
+        private readonly Dictionary<TypeRegistry, IntPtr> typeCache = new Dictionary<TypeRegistry, IntPtr>();
 
         public JSContext(IntPtr handle)
             : base(handle)
         {
-            Global = new JSObject(this, JavascriptCore.JSContextGetGlobalObject(Handle));
-            Group = new JSContextGroup(JavascriptCore.JSContextGetGroup(Handle));
-            Undefined = new JSUndefined(this);
-            Null = new JSNull(this);
-        }
-    }
-
-    public class JSContextGroup : DisposableObject
-    {
-        internal JSContextGroup(IntPtr handle)
-            : base(handle)
-        {
+            Converter = new JSValueRefConverter(this);
+            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(Handle));
+            Proxy = new HostObjectProxy(this);
         }
 
-        public JSContextGroup()
-            : base(JavascriptCore.JSContextGroupCreate())
+        public void RegisterHostType<T>() => RegisterHostType(typeof(T), true);
+
+        internal IntPtr RegisterHostType(Type type, bool makeConstructor)
         {
+            var cached = typeCache.FirstOrDefault(pair => pair.Key.FullName == type.FullName);
+
+            if (typeCache.Keys.Any(k => k.FullName == type.FullName))
+            {
+                if (makeConstructor)
+                    makeTypeAvailable(type, cached.Value);
+
+                return cached.Value;
+            }
+
+            var registry = new TypeRegistry
+            {
+                AssemblyName = type.AssemblyQualifiedName,
+                FullName = type.FullName
+            };
+
+            var klass = Proxy.MakeDerivedClass(registry);
+            typeCache.Add(registry, klass);
+
+            if (makeConstructor)
+                makeTypeAvailable(type, klass);
+
+            return klass;
         }
 
         protected override void DisposeUnmanaged()
-            => JavascriptCore.JSContextGroupRelease(Handle);
+        {
+            foreach (var klass in typeCache.Values)
+                JSCore.JSClassRelease(klass);
+
+            Proxy.Dispose();
+        }
+
+        private void makeTypeAvailable(Type type, IntPtr klass)
+        {
+            dynamic global = Global;
+            global[type.Name] = new JSObject(this, JSCore.JSObjectMakeConstructor(Handle, klass, Proxy.HandleConstructor));
+        }
     }
 
-    public partial class JavascriptCore
+    public partial class JSCore
     {
         [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSContextGroupCreate();
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSContextGroupRetain(IntPtr group);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSContextGroupRelease(IntPtr group);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSGlobalContextCreate(IntPtr globalObjectClass);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSGlobalContextCreateInGroup(IntPtr group, IntPtr globalObjectClass);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSGlobalContextRetain(IntPtr globalCtx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void JSGlobalContextRelease(IntPtr globalCtx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
         internal static extern IntPtr JSContextGetGlobalObject(IntPtr ctx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSContextGetGroup(IntPtr ctx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSContextGetGlobalContext(IntPtr ctx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSGlobalContextCopyName(IntPtr globalCtx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSGlobalContextSetName(IntPtr globalCtx, IntPtr name);
     }
 }

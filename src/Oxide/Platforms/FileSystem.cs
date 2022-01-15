@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using Oxide.Interop;
 
@@ -23,7 +22,7 @@ namespace Oxide.Platforms
         [MarshalAs(UnmanagedType.I1)] bool openForWriting
     );
 
-    internal delegate long FileSystemReadFromFileCallback(uint handle, IntPtr data, long length);
+    internal unsafe delegate long FileSystemReadFromFileCallback(uint handle, byte* data, long length);
     internal delegate void FileSystemCloseFileCallback(uint handle);
 
     [StructLayout(LayoutKind.Sequential)]

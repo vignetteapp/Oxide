@@ -1,13 +1,13 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Oxide.Javascript
+namespace Oxide.JavaScript.Objects
 {
     public class JSTypedArray : JSObject
     {
-        public int Length => (int)JavascriptCore.JSObjectGetTyepdArrayLength(Context.Handle, Handle, IntPtr.Zero);
-        public int ByteLength => (int)JavascriptCore.JSObjectGetTypedArrayByteLength(Context.Handle, Handle, IntPtr.Zero);
-        public int ByteOffset => (int)JavascriptCore.JSObjectGetTypedArrayByteOffset(Context.Handle, Handle, IntPtr.Zero);
+        public int Length => (int)JSCore.JSObjectGetTyepdArrayLength(Context.Handle, Handle, IntPtr.Zero);
+        public int ByteLength => (int)JSCore.JSObjectGetTypedArrayByteLength(Context.Handle, Handle, IntPtr.Zero);
+        public int ByteOffset => (int)JSCore.JSObjectGetTypedArrayByteOffset(Context.Handle, Handle, IntPtr.Zero);
 
         internal JSTypedArray(JSContext ctx, IntPtr handle)
             : base(ctx, handle)
@@ -15,12 +15,15 @@ namespace Oxide.Javascript
         }
 
         internal JSTypedArray(JSContext ctx, JSTypedArrayType arrayType, uint length)
-            : base(ctx, JavascriptCore.JSObjectMakeTypedArray(ctx.Handle, arrayType, length, IntPtr.Zero))
+            : base(ctx, JSCore.JSObjectMakeTypedArray(ctx.Handle, arrayType, length, IntPtr.Zero))
         {
         }
     }
+}
 
-    public partial class JavascriptCore
+namespace Oxide.JavaScript
+{
+    public partial class JSCore
     {
         [DllImport(LIB_WEBCORE, ExactSpelling = true)]
         internal static extern IntPtr JSObjectMakeTypedArray(IntPtr ctx, JSTypedArrayType arrayType, uint length, IntPtr exception);

@@ -5,7 +5,7 @@ using Oxide.Graphics;
 using Oxide.Graphics.Drivers;
 using Oxide.Input;
 using Oxide.Interop;
-using Oxide.Javascript;
+using Oxide.JavaScript;
 
 namespace Oxide
 {
@@ -190,6 +190,7 @@ namespace Oxide
         private LoadingCallback domReady;
         private FailLoadingCallback failLoad;
         private UpdateHistoryCallback historyUpdate;
+        private JSContext current;
 
         internal View(IntPtr handle)
             : base(handle, true)
@@ -246,13 +247,17 @@ namespace Oxide
         /// </summary>
         /// <returns>The JavaScript context.</returns>
         public JSContext LockJSContext()
-            => new JSContext(Ultralight.ulViewLockJSContext(Handle));
+            => current ??= new JSContext(Ultralight.ulViewLockJSContext(Handle));
 
         /// <summary>
         /// Unlock the page's JSContext after a previous call to <see cref="LockJSContext"/>.
         /// </summary>
         public void UnlockJSContext()
-            => Ultralight.ulViewUnlockJSContext(Handle);
+        {
+            current?.Dispose();
+            current = null;
+            Ultralight.ulViewUnlockJSContext(Handle);
+        }
 
         /// <summary>
         /// Helper function to evaluate a raw string of JavaScript and return the

@@ -1,6 +1,6 @@
-namespace Oxide.Javascript
+namespace Oxide.JavaScript
 {
-    public partial class JavascriptCore
+    public partial class JSCore
     {
         internal const string LIB_WEBCORE = @"WebCore";
     }

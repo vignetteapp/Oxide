@@ -1,13 +1,14 @@
 using System;
 using NUnit.Framework;
 using Oxide.Interop;
+using Oxide.JavaScript.Interop;
 
 namespace Oxide.Tests
 {
     public class StringMarshalTests
     {
         [Test]
-        public void TestMarshalStringToNative()
+        public void TestMarshalULStringToNative()
         {
             var marshaler = new ULStringMarshaler();
 
@@ -17,7 +18,21 @@ namespace Oxide.Tests
             string newString = (string)marshaler.MarshalNativeToManaged(ptr);
             marshaler.CleanUpNativeData(ptr);
 
-            Assert.Equals(oldString, newString);
+            Assert.AreEqual(oldString, newString);
+        }
+
+        [Test]
+        public void TestMarshalJSStringToNative()
+        {
+            var marshaler = new JSStringRefMarshal();
+
+            string oldString = "Hello World";
+            IntPtr ptr = marshaler.MarshalManagedToNative(oldString);
+
+            string newString = (string)marshaler.MarshalNativeToManaged(ptr);
+            marshaler.CleanUpManagedData(ptr);
+
+            Assert.AreEqual(oldString, newString);
         }
     }
 }

@@ -1,16 +1,16 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Oxide.Interop
+namespace Oxide.JavaScript.Interop
 {
-    internal class ULStringMarshaler : ICustomMarshaler
+    internal class JSStringRefMarshal : ICustomMarshaler
     {
         private readonly bool destroy;
 
         public static ICustomMarshaler GetInstance(string cookie)
-            => new ULStringMarshaler(cookie);
+            => new JSStringRefMarshal(cookie);
 
-        public ULStringMarshaler(string cookie = null)
+        public JSStringRefMarshal(string cookie = null)
         {
             destroy = cookie != @"DoNotDestroy";
         }
@@ -32,31 +32,25 @@ namespace Oxide.Interop
             if (managedObj is not string str)
                 throw new MarshalDirectiveException($"Cannot marshal {managedObj.GetType().Name} to ULString.");
 
-            return Ultralight.ulCreateStringUTF8(str, (uint)str.Length);
+            return JSCore.JSStringCreateWithUTF8CString(str);
         }
 
         public object MarshalNativeToManaged(IntPtr pNativeData)
-            => Marshal.PtrToStringUni(Ultralight.ulStringGetData(pNativeData));
+            => Marshal.PtrToStringUni(JSCore.JSStringGetCharactersPtr(pNativeData));
     }
 }
 
-namespace Oxide
+namespace Oxide.JavaScript
 {
-
-#pragma warning disable CA2101
-
-    public partial class Ultralight
+    public partial class JSCore
     {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateStringUTF8([MarshalAs(UnmanagedType.LPUTF8Str)] string ptr, uint length);
+        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
+        internal static extern IntPtr JSStringCreateWithUTF8CString([MarshalAs(UnmanagedType.LPUTF8Str)] string ptr);
 
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
         internal static extern void ulDestroyString(IntPtr str);
 
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr ulStringGetData(IntPtr str);
+        [DllImport(LIB_WEBCORE, ExactSpelling = true, CharSet = CharSet.Unicode)]
+        internal static extern IntPtr JSStringGetCharactersPtr(IntPtr str);
     }
-
-#pragma warning restore CA2101
-
 }

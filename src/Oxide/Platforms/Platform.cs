@@ -93,7 +93,7 @@ namespace Oxide.Platforms
         /// Sets the platform file system.
         /// </summary>
         /// <param name="filesystem">The filesystem to use.</param>
-        public static void SetFileSystem(IFileSystem filesystem)
+        public unsafe static void SetFileSystem(IFileSystem filesystem)
         {
             plFileSystemImpl = filesystem;
             Ultralight.ulPlatformSetFileSystem(plFileSystem = new FileSystem
@@ -103,13 +103,7 @@ namespace Oxide.Platforms
                 FileExists = filesystem.FileExists,
                 GetFileSize = filesystem.GetFileSize,
                 GetMimeType = filesystem.GetMimeType,
-                ReadFromFile = (h, d, l) =>
-                {
-                    Span<byte> span = stackalloc byte[(int)l];
-                    long length = filesystem.ReadFile(h, span);
-                    Marshal.Copy(span.ToArray(), 0, d, span.Length);
-                    return length;
-                },
+                ReadFromFile = (h, d, l) => filesystem.ReadFile(h, new Span<byte>(d, (int)l)),
             });
         }
 
