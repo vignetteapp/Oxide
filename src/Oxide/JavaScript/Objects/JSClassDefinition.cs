@@ -38,25 +38,25 @@ namespace Oxide.JavaScript.Objects
                 return Marshal.PtrToStructure<JSClassDefinition>(ptr);
             }
         }
-
-        internal delegate void JSObjectInitializeCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj);
-        internal delegate void JSObjectFinalizeCallback(IntPtr jsClass, IntPtr obj);
-        internal delegate void JSObjectGetPropertyNamesCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, IntPtr propertyNames);
-        internal delegate IntPtr JSObjectCallAsFunctionCallback(IntPtr ctx, IntPtr jsClass, string className, IntPtr func, IntPtr thisObj, uint argumentCount, IntPtr arguments, IntPtr exception);
-        internal delegate IntPtr JSObjectCallAsConstructorCallback(IntPtr ctx, IntPtr jsClass, IntPtr constructor, uint argumentCount, IntPtr arguments, IntPtr exception);
-        internal delegate IntPtr JSObjectConvertToTypeCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, JSType type, IntPtr exception);
-        internal delegate IntPtr JSObjectGetPropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr exception);
-
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal delegate bool JSObjectHasPropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName);
-
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal delegate bool JSObjectSetPropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr value, IntPtr exception);
-
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal delegate bool JSObjectDeletePropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr exception);
-
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal delegate bool JSObjectHasInstanceCallback(IntPtr ctx, IntPtr jsClass, IntPtr constructor, IntPtr possibleInstance, IntPtr exception);
     }
+
+    internal delegate void JSObjectInitializeCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj);
+    internal delegate void JSObjectFinalizeCallback(IntPtr jsClass, IntPtr obj);
+    internal delegate void JSObjectGetPropertyNamesCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, IntPtr propertyNames);
+    internal delegate IntPtr JSObjectCallAsFunctionCallback(IntPtr ctx, IntPtr jsClass, string className, IntPtr func, IntPtr thisObj, uint argumentCount, IntPtr arguments, IntPtr exception);
+    internal delegate IntPtr JSObjectCallAsConstructorCallback(IntPtr ctx, IntPtr jsClass, IntPtr constructor, uint argumentCount, IntPtr arguments, IntPtr exception);
+    internal delegate IntPtr JSObjectConvertToTypeCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, JSType type, IntPtr exception);
+    internal delegate IntPtr JSObjectGetPropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr exception);
+
+    [return: MarshalAs(UnmanagedType.I1)]
+    internal delegate bool JSObjectHasPropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName);
+
+    [return: MarshalAs(UnmanagedType.I1)]
+    internal delegate bool JSObjectSetPropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr value, IntPtr exception);
+
+    [return: MarshalAs(UnmanagedType.I1)]
+    internal delegate bool JSObjectDeletePropertyCallback(IntPtr ctx, IntPtr jsClass, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr exception);
+
+    [return: MarshalAs(UnmanagedType.I1)]
+    internal delegate bool JSObjectHasInstanceCallback(IntPtr ctx, IntPtr jsClass, IntPtr constructor, IntPtr possibleInstance, IntPtr exception);
 }
