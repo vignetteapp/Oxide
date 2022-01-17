@@ -1,3 +1,6 @@
+// Copyright (c) The Vignette Authors
+// Licensed under BSD 3-Clause License. See LICENSE for details.
+
 using Oxide.Graphics.Bitmaps;
 using Oxide.Graphics.Drivers.Buffers;
 
