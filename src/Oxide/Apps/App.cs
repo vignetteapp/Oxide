@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace Oxide.Apps
 {
@@ -90,32 +89,4 @@ namespace Oxide.Apps
     }
 
     internal delegate void AppUpdateCallback(IntPtr userData);
-
-    public partial class AppCore
-    {
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateApp(IntPtr settings, IntPtr config);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulDestroyApp(IntPtr app);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulAppSetUpdateCallback(IntPtr app, AppUpdateCallback callback, IntPtr userData);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulAppisRunning(IntPtr app);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulAppGetMainMonitor(IntPtr app);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulAppGetRenderer(IntPtr app);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulAppRun(IntPtr app);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulAppQuit(IntPtr app);
-    }
 }

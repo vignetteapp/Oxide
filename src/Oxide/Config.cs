@@ -1,8 +1,5 @@
-using System;
-using System.Runtime.InteropServices;
 using Oxide.Graphics;
 using Oxide.Graphics.Fonts;
-using Oxide.Interop;
 
 namespace Oxide
 {
@@ -207,60 +204,4 @@ namespace Oxide
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroyConfig(Handle);
     }
-
-#pragma warning disable CA2101 // Custom marshaler is used
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateConfig();
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyConfig(IntPtr handle);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetCachePath(IntPtr config, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string cachePath);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetFaceWinding(IntPtr config, FaceWinding winding);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetFontHinting(IntPtr config, FontHinting fontHinting);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetFontGamma(IntPtr config, double gamma);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetUserStyleSheet(IntPtr config, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string cssString);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetForceRepaint(IntPtr config, [MarshalAs(UnmanagedType.I1)] bool enabled);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetAnimationTimerDelay(IntPtr config, double delay);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetScrollTimerDelay(IntPtr config, double delay);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetRecycleDelay(IntPtr config, double delay);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetMemoryCacheSize(IntPtr config, uint size);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetPageCacheSize(IntPtr config, uint size);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetOverrideRAMSize(IntPtr config, uint size);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetMinLargeHeapSize(IntPtr config, uint size);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulConfigSetMinSmallHeapSize(IntPtr config, uint size);
-    }
-
-#pragma warning restore CA2101
-
 }

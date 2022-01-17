@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Oxide.JavaScript.Interop
 {
@@ -22,7 +23,7 @@ namespace Oxide.JavaScript.Interop
         public void CleanUpNativeData(IntPtr pNativeData)
         {
             if (destroy)
-                Ultralight.ulDestroyString(pNativeData);
+                JSCore.JSStringRelease(pNativeData);
         }
 
         public int GetNativeDataSize() => -1;
@@ -35,22 +36,19 @@ namespace Oxide.JavaScript.Interop
             return JSCore.JSStringCreateWithUTF8CString(str);
         }
 
-        public object MarshalNativeToManaged(IntPtr pNativeData)
-            => Marshal.PtrToStringUni(JSCore.JSStringGetCharactersPtr(pNativeData));
-    }
-}
+        public unsafe object MarshalNativeToManaged(IntPtr pNativeData)
+        {
+            uint copied = 0;
+            uint length = JSCore.JSStringGetMaximumUTF8CStringSize(pNativeData);
+            byte[] data = new byte[(int)length];
 
-namespace Oxide.JavaScript
-{
-    public partial class JSCore
-    {
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSStringCreateWithUTF8CString([MarshalAs(UnmanagedType.LPUTF8Str)] string ptr);
+            fixed (byte* pointer = data)
+            {
+                copied = JSCore.JSStringGetUTF8CString(pNativeData, pointer, length);
+            }
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void ulDestroyString(IntPtr str);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr JSStringGetCharactersPtr(IntPtr str);
+            Array.Resize(ref data, (int)copied - 1);
+            return Encoding.UTF8.GetString(data);
+        }
     }
 }

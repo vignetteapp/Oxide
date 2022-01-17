@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 namespace Oxide.Apps
 {
@@ -42,17 +41,5 @@ namespace Oxide.Apps
         /// </summary>
         public Window CreateWindow(int width, int height, bool isFullScreen, WindowFlags flags)
             => new Window(this, width, height, isFullScreen, flags);
-    }
-
-    public partial class AppCore
-    {
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern double ulMonitorGetScale(IntPtr monitor);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulMonitorGetWidth(IntPtr monitor);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulMonitorGetHeight(IntPtr monitor);
     }
 }

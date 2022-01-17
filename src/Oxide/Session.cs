@@ -1,6 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
-using Oxide.Interop;
 
 namespace Oxide
 {
@@ -39,36 +37,4 @@ namespace Oxide
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroySession(Handle);
     }
-
-#pragma warning disable CA2101 // Custom marshaler is used
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateSession(
-            IntPtr renderer,
-            [MarshalAs(UnmanagedType.I1)] bool isPersistent,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string name);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroySession(IntPtr session);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulSessionIsPersistent(IntPtr session);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))]
-        internal static extern string ulSessionGetName(IntPtr session);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulSessionGetId(IntPtr session);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))]
-        internal static extern string ulSessionGetDiskPath(IntPtr session);
-    }
-
-#pragma warning restore CA2101
-
 }

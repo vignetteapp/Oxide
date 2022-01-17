@@ -3,14 +3,37 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Oxide.JavaScript.Interop;
-using Oxide.JavaScript.Objects;
+using System.Threading;
 
 namespace Oxide.JavaScript.Objects
 {
-    public class JSObject : DynamicObject
+    public class JSObject : DynamicObject, IDisposable
     {
-        internal readonly IntPtr Handle;
+        internal IntPtr Handle
+        {
+            get
+            {
+                if (isDisposed)
+                    throw new ObjectDisposedException(GetType().Name);
+
+                if (handle == IntPtr.Zero)
+                    throw new InvalidOperationException(@"This object has yet to be initialized.");
+
+                return handle;
+            }
+        }
+
+        /// <summary>
+        /// Gets the JavaScript object's class name.
+        /// </summary>
+        public string ClassName
+        {
+            get
+            {
+                var constructor = JSCore.JSObjectGetProperty(Context.Handle, Handle, "constructor", out _);
+                return (string)Context.Converter.ConvertJSValue(JSCore.JSObjectGetProperty(Context.Handle, constructor, "name", out _));
+            }
+        }
 
         /// <summary>
         /// Gets whether this JavaScript object is a wrapped .NET Object.
@@ -30,7 +53,7 @@ namespace Oxide.JavaScript.Objects
         /// <summary>
         /// Gets whether this JavaScript object is a promise.
         /// </summary>
-        public bool IsPromise => IsFunction && JSCore.JSValueIsUndefined(Context.Handle, JSCore.JSObjectGetProperty(Context.Handle, Handle, "then", IntPtr.Zero));
+        public bool IsPromise => ClassName == @"Promise";
 
         /// <summary>
         /// Gets whether this JavaScript object is a constructor.
@@ -40,14 +63,23 @@ namespace Oxide.JavaScript.Objects
         /// <summary>
         /// Gets this JavaScript object's array type.
         /// </summary>
-        public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context.Handle, Handle, IntPtr.Zero);
+        public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context.Handle, Handle, out _);
 
         protected readonly JSContext Context;
 
-        internal JSObject(JSContext ctx, IntPtr handle)
+        private volatile int disposeSignal = 0;
+        private readonly bool protect;
+        private readonly IntPtr handle;
+        private bool isDisposed;
+
+        internal JSObject(JSContext ctx, IntPtr handle, bool protect = true)
         {
             Context = ctx;
-            Handle = handle;
+            this.handle = handle;
+            this.protect = protect;
+
+            if (this.protect)
+                JSCore.JSValueProtect(Context.Handle, Handle);
         }
 
         public override IEnumerable<string> GetDynamicMemberNames()
@@ -62,6 +94,8 @@ namespace Oxide.JavaScript.Objects
                 members.Add(item);
             }
 
+            JSCore.JSPropertyNameArrayRelease(accumulator);
+
             return members;
         }
 
@@ -69,28 +103,65 @@ namespace Oxide.JavaScript.Objects
         {
             result = Undefined.Value;
 
-            if (indexes.Length > 1 && !IsArray)
+            if (indexes.Length > 1 && indexes[0] is not string)
                 return false;
 
-            var value = JSCore.JSObjectGetPropertyAtIndex(Context.Handle, Handle, (uint)indexes[0], IntPtr.Zero);
+            if (!JSCore.JSObjectHasProperty(Context.Handle, Handle, (string)indexes[0]))
+                return false;
+
+            IntPtr error;
+            IntPtr value;
+
+            if (uint.TryParse((string)indexes[0], out uint num))
+            {
+                value = JSCore.JSObjectGetPropertyAtIndex(Context.Handle, Handle, num, out error);
+            }
+            else
+            {
+                value = JSCore.JSObjectGetProperty(Context.Handle, Handle, (string)indexes[0], out error);
+            }
+
             result = Context.Converter.ConvertJSValue(value);
+
+            throwOnError(error);
 
             return true;
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            var value = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, IntPtr.Zero);
-            result = Context.Converter.ConvertJSValue(value);
+            if (JSCore.JSObjectHasProperty(Context.Handle, Handle, binder.Name))
+            {
+                var value = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error);
+                result = Context.Converter.ConvertJSValue(value);
+                throwOnError(error);
+            }
+            else
+            {
+                result = Context.Converter.ConvertHostObject(Undefined.Value);
+            }
+
             return true;
         }
 
         public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value)
         {
-            if (indexes.Length > 1 && !IsArray)
+            if (indexes.Length > 1 && indexes[0] is not string)
                 return false;
 
-            JSCore.JSObjectSetPropertyAtIndex(Context.Handle, Handle, (uint)indexes[0], Context.Converter.ConvertHostObject(value), IntPtr.Zero);
+            var error = IntPtr.Zero;
+
+            if (uint.TryParse((string)indexes[0], out uint num))
+            {
+                JSCore.JSObjectSetPropertyAtIndex(Context.Handle, Handle, num, Context.Converter.ConvertHostObject(value), out error);
+            }
+            else
+            {
+                JSCore.JSObjectSetProperty(Context.Handle, Handle, (string)indexes[0], Context.Converter.ConvertHostObject(value));
+            }
+
+            throwOnError(error);
+
             return true;
         }
 
@@ -98,7 +169,11 @@ namespace Oxide.JavaScript.Objects
             => JSCore.JSObjectSetProperty(Context.Handle, Handle, binder.Name, Context.Converter.ConvertHostObject(value));
 
         public override bool TryDeleteMember(DeleteMemberBinder binder)
-            => JSCore.JSObjectDeleteProperty(Context.Handle, Handle, binder.Name, IntPtr.Zero);
+        {
+            bool result = JSCore.JSObjectDeleteProperty(Context.Handle, Handle, binder.Name, out var error);
+            throwOnError(error);
+            return result;
+        }
 
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
@@ -107,9 +182,11 @@ namespace Oxide.JavaScript.Objects
 
             result = Context.Converter.ConvertJSValue(
                 JSCore.JSObjectCallAsFunction(
-                    Context.Handle, Handle, Handle, (uint)args.Length, GCHandle.ToIntPtr(convertedArgsHandle), IntPtr.Zero
+                    Context.Handle, Handle, Handle, (uint)args.Length, GCHandle.ToIntPtr(convertedArgsHandle), out var error
                 )
             );
+
+            throwOnError(error);
 
             convertedArgsHandle.Free();
             return true;
@@ -120,13 +197,15 @@ namespace Oxide.JavaScript.Objects
             var convertedArgs = args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray();
             var convertedArgsHandle = GCHandle.Alloc(convertedArgs, GCHandleType.Normal);
 
-            var function = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, IntPtr.Zero);
+            var function = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error);
 
             result = Context.Converter.ConvertJSValue(
                 JSCore.JSObjectCallAsFunction(
-                    Context.Handle, function, Handle, (uint)args.Length, GCHandle.ToIntPtr(convertedArgsHandle), IntPtr.Zero
+                    Context.Handle, function, Handle, (uint)args.Length, GCHandle.ToIntPtr(convertedArgsHandle), out error
                 )
             );
+
+            throwOnError(error);
 
             convertedArgsHandle.Free();
             return true;
@@ -139,161 +218,35 @@ namespace Oxide.JavaScript.Objects
 
             return GCHandle.FromIntPtr(JSCore.JSObjectGetPrivate(Handle)).Target;
         }
-    }
-}
 
-namespace Oxide.JavaScript
-{
-    public partial class JSCore
-    {
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSValueIsArray(IntPtr ctx, IntPtr value);
+        private void throwOnError(IntPtr error)
+        {
+            if (error != IntPtr.Zero)
+                throw new JavaScriptException((JSObject)Context.Converter.ConvertJSValue(error));
+        }
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSValueIsUndefined(IntPtr ctx, IntPtr value);
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed || Interlocked.Exchange(ref disposeSignal, 1) != 0)
+                return;
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSValueIsObjectOfClass(IntPtr ctx, IntPtr value, IntPtr jsClass);
+            if (protect)
+                JSCore.JSValueUnprotect(Context.Handle, Handle);
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern JSTypedArrayType JSValueGetTypedArrayType(IntPtr ctx, IntPtr value, IntPtr exception);
+            isDisposed = true;
+        }
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSClassCreate(JSClassDefinition definition);
+        ~JSObject()
+        {
+            Dispose(false);
+        }
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSClassRetain(IntPtr jsClass);
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSClassRelease(IntPtr jsClass);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSClassGetPrivate(IntPtr jsClass);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSClassSetPrivate(IntPtr jsClass, IntPtr data);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMake(IntPtr ctx, IntPtr jsClass, IntPtr data);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeFunctionWithCallback(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string name, JSObjectCallAsFunctionCallback callAsFunction);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeConstructor(IntPtr ctx, IntPtr jsClass, JSObjectCallAsConstructorCallback callAsConstructor);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeArray(IntPtr ctx, uint argumentCount, IntPtr arguments, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeDate(IntPtr ctx, uint argumentCount, IntPtr arguments, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeError(IntPtr ctx, uint argumentCount, IntPtr arguments, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeRegExp(IntPtr ctx, uint argumentCount, IntPtr arguments, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeDeferredPromise(IntPtr ctx, IntPtr resolve, IntPtr reject, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectMakeFunction(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string name, uint parameterCount, IntPtr parameterNames, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string body, IntPtr sourceURL, int startingLineNumber, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectGetPrototype(IntPtr ctx, IntPtr obj);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void JSObjectSetPrototype(IntPtr ctx, IntPtr obj, IntPtr value);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectHasProperty(IntPtr ctx, IntPtr obj, IntPtr propertyName);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectGetProperty(IntPtr ctx, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectSetProperty(IntPtr ctx, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr value);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectDeleteProperty(IntPtr ctx, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectHasPropertyForKey(IntPtr ctx, IntPtr obj, IntPtr propertyKey, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectGetPropertyForKey(IntPtr ctx, IntPtr obj, IntPtr propertyKey, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void JSObjectSetPropertyForKey(IntPtr ctx, IntPtr obj, IntPtr propertyKey, IntPtr value, JSPropertyAttribute attributes, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectDeletePropertyForKey(IntPtr ctx, IntPtr obj, IntPtr propertyKey, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectGetPropertyAtIndex(IntPtr ctx, IntPtr obj, uint propertyIndex, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void JSObjectSetPropertyAtIndex(IntPtr ctx, IntPtr obj, uint propertyIndex, IntPtr value, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectGetPrivate(IntPtr obj);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectSetPrivate(IntPtr obj, IntPtr data);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectIsFunction(IntPtr ctx, IntPtr obj);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectCallAsFunction(IntPtr ctx, IntPtr obj, IntPtr thisObject, uint argumentCount, IntPtr arguments, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectIsConstructor(IntPtr ctx, IntPtr obj);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectCallAsConstructor(IntPtr ctx, IntPtr obj, uint argumentCount, IntPtr arguments, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectCopyPropertyNames(IntPtr ctx, IntPtr obj);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSPropertyNameArrayRetain(IntPtr array);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void JSPropertyNameArrayRelease(IntPtr array);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern uint JSPropertyNameArrayGetCount(IntPtr array);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))]
-        internal static extern string JSPropertyNameArrayGetNameAtIndex(IntPtr array, uint index);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern void JSPropertyNameAccumulatorAddName(IntPtr accumulator, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectSetPrivateProperty(IntPtr ctx, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName, IntPtr value);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSObjectGetPrivateProperty(IntPtr ctx, IntPtr obj, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string propertyName);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSObjectDeletePrivateProperty(IntPtr ctx, IntPtr obj, IntPtr proeprtyName);
+        public override string ToString() => @$"[{ClassName}]";
     }
 }

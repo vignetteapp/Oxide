@@ -1,7 +1,5 @@
-
 using System;
 using System.Runtime.InteropServices;
-using Oxide.JavaScript.Interop;
 using Oxide.JavaScript.Objects;
 
 namespace Oxide.JavaScript.Interop
@@ -19,6 +17,9 @@ namespace Oxide.JavaScript.Interop
         {
             switch (value)
             {
+                case JSObject jsObject:
+                    return jsObject.Handle;
+
                 case bool booleanValue:
                     return JSCore.JSValueMakeBoolean(context.Handle, booleanValue);
 
@@ -57,9 +58,10 @@ namespace Oxide.JavaScript.Interop
 
                 case object:
                     {
-                        var klass = context.RegisterHostType(value.GetType(), false);
+                        var klass = context.RegisterHostType(value.GetType(), null, false);
                         var handle = GCHandle.Alloc(value, GCHandleType.Normal);
-                        return JSCore.JSObjectMake(context.Handle, klass, GCHandle.ToIntPtr(handle));
+                        var pointer = GCHandle.ToIntPtr(handle);
+                        return JSCore.JSObjectMake(context.Handle, klass, pointer);
                     }
 
                 case null:
@@ -77,12 +79,12 @@ namespace Oxide.JavaScript.Interop
                     return JSCore.JSValueToBoolean(context.Handle, value);
 
                 case JSType.Number:
-                    return JSCore.JSValueToNumber(context.Handle, value, IntPtr.Zero);
+                    return JSCore.JSValueToNumber(context.Handle, value, out _);
 
                 case JSType.Symbol:
                 case JSType.Object:
                     {
-                        if (JSCore.JSValueIsArray(context.Handle, value) && JSCore.JSValueGetTypedArrayType(context.Handle, value, IntPtr.Zero) != JSTypedArrayType.None)
+                        if (JSCore.JSValueIsArray(context.Handle, value) && JSCore.JSValueGetTypedArrayType(context.Handle, value, out _) != JSTypedArrayType.None)
                             return new JSTypedArray(context, value);
 
                         var obj = new JSObject(context, value);
@@ -94,7 +96,7 @@ namespace Oxide.JavaScript.Interop
                     }
 
                 case JSType.String:
-                    return JSCore.JSValueToString(context.Handle, value, IntPtr.Zero);
+                    return JSCore.JSValueToString(context.Handle, value, out _);
 
                 case JSType.Undefined:
                     return Undefined.Value;
@@ -104,41 +106,6 @@ namespace Oxide.JavaScript.Interop
                     return null;
             }
         }
-    }
-}
-
-namespace Oxide.JavaScript
-{
-    public partial class JSCore
-    {
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern JSType JSValueGetType(IntPtr ctx, IntPtr value);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSValueMakeBoolean(IntPtr ctx, [MarshalAs(UnmanagedType.I1)] bool boolean);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool JSValueToBoolean(IntPtr ctx, IntPtr value);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSValueMakeNull(IntPtr ctx);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSValueMakeNumber(IntPtr ctx, double number);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern double JSValueToNumber(IntPtr ctx, IntPtr value, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSValueMakeString(IntPtr ctx, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))] string value);
-
-        [DllImport(LIB_WEBCORE, EntryPoint = "JSValueToStringCopy")]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(JSStringRefMarshal))]
-        internal static extern string JSValueToString(IntPtr ctx, IntPtr value, IntPtr exception);
-
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSValueMakeUndefined(IntPtr ctx);
     }
 }
 

@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using Oxide.Input;
-using Oxide.Interop;
 
 namespace Oxide.Input
 {
@@ -62,71 +60,4 @@ namespace Oxide.Input
             return new KeyEvent(Ultralight.ulCreateKeyEventMacOS(evt));
         }
     }
-
-    public enum KeyEventType
-    {
-        /// <summary>
-        /// Key-Down event type. (Does not trigger accelerator commands in WebCore)
-        /// </summary>
-        /// <remarks>
-        /// You should probably use <see cref="RawKeyDown"/> instead when a physical key
-        /// is pressed. This member is only here for historic compatibility
-        /// with WebCore's key event types.
-        /// </remarks>
-        KeyDown,
-
-        /// <summary>
-        /// Key-Up event type. Use this when a physical key is released.
-        /// </summary>
-        KeyUp,
-
-        /// <summary>
-        /// Raw Key-Down type. Use this when a physical key is pressed.
-        /// </summary>
-        /// <remarks>
-        /// You should use <see cref="RawKeyDown"/> for physical key presses since it
-        /// allows WebCore to do additional command translation.
-        /// </remarks>
-        RawKeyDown,
-
-        /// <summary>
-        /// Character input event type. Use this when the OS generates text from
-        /// a physical key being pressed (eg, WM_CHAR on Windows).
-        /// </summary>
-        Char,
-    }
-}
-
-namespace Oxide
-{
-
-#pragma warning disable CA2101 // Custom marshaler is used
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateKeyEvent(
-            KeyEventType type,
-            uint modifiers,
-            int virtualKeyCode,
-            int nativeKeyCode,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string text,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string unmodifiedText,
-            [MarshalAs(UnmanagedType.I1)] bool isKeypad,
-            [MarshalAs(UnmanagedType.I1)] bool isAutoRepeat,
-            [MarshalAs(UnmanagedType.I1)] bool isSystemKey);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateKeyEventWindows(
-            KeyEventType type,
-            UIntPtr wparam,
-            UIntPtr lparam,
-            [MarshalAs(UnmanagedType.I1)] bool isSystemKey);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateKeyEventMacOS(IntPtr evt);
-    }
-
-#pragma warning restore CA2101
-
 }

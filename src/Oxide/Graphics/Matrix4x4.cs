@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using Oxide.Graphics;
 
 namespace Oxide.Graphics
 {
@@ -21,14 +20,5 @@ namespace Oxide.Graphics
         /// </summary>
         public static Matrix4x4 ApplyProjection(this Matrix4x4 matrix, float viewportWidth, float viewportHeight, bool flipY)
             => Ultralight.ulApplyProjection(matrix, viewportWidth, viewportHeight, flipY);
-    }
-}
-
-namespace Oxide
-{
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern Matrix4x4 ulApplyProjection(Matrix4x4 transform, float viewportWidth, float viewportHeight, [MarshalAs(UnmanagedType.I1)] bool flipY);
     }
 }

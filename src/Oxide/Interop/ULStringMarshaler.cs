@@ -39,24 +39,3 @@ namespace Oxide.Interop
             => Marshal.PtrToStringUni(Ultralight.ulStringGetData(pNativeData));
     }
 }
-
-namespace Oxide
-{
-
-#pragma warning disable CA2101
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateStringUTF8([MarshalAs(UnmanagedType.LPUTF8Str)] string ptr, uint length);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyString(IntPtr str);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr ulStringGetData(IntPtr str);
-    }
-
-#pragma warning restore CA2101
-
-}

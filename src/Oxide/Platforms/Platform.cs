@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using Oxide.Graphics;
 using Oxide.Graphics.Bitmaps;
 using Oxide.Graphics.Drivers;
-using Oxide.Platforms;
 
 namespace Oxide.Platforms
 {
@@ -121,26 +120,5 @@ namespace Oxide.Platforms
                 ReadPlainText = (out string str) => str = clipboard.GetText(),
             });
         }
-    }
-}
-
-namespace Oxide
-{
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulPlatformSetSurfaceDefinition(SurfaceDefinition surfaceDefinition);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulPlatformSetLogger(Logger logger);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulPlatformSetFileSystem(FileSystem fileSystem);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulPlatformSetClipboard(Clipboard clipboard);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulPlatformSetGPUDriver(GPUDriver driver);
     }
 }

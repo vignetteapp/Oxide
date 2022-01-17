@@ -190,7 +190,7 @@ namespace Oxide
         private LoadingCallback domReady;
         private FailLoadingCallback failLoad;
         private UpdateHistoryCallback historyUpdate;
-        private JSContext current;
+        private JSContext context;
 
         internal View(IntPtr handle)
             : base(handle, true)
@@ -225,6 +225,7 @@ namespace Oxide
 
         protected override void DisposeManaged()
         {
+            context?.Dispose();
             historyUpdate -= handleHistoryUpdate;
             beginLoad -= handleLoadingBegin;
             finishLoad -= handleLoadingFinish;
@@ -243,31 +244,17 @@ namespace Oxide
             => Ultralight.ulDestroyView(Handle);
 
         /// <summary>
-        /// Acquire the page's JSContext for use with JavaScriptCore API.
+        /// Perform actions while the view's <see cref="JSContext"/> is locked.
         /// </summary>
-        /// <returns>The JavaScript context.</returns>
-        public JSContext LockJSContext()
-            => current ??= new JSContext(Ultralight.ulViewLockJSContext(Handle));
-
-        /// <summary>
-        /// Unlock the page's JSContext after a previous call to <see cref="LockJSContext"/>.
-        /// </summary>
-        public void UnlockJSContext()
+        /// <param name="action">Action invoked while the <see cref="JSContext"/> is locked.</param>
+        public void GetJSContext(Action<JSContext> action)
         {
-            current?.Dispose();
-            current = null;
+            context ??= new JSContext(Ultralight.ulViewLockJSContext(Handle), false);
+            context.IsLocked = true;
+            action.Invoke(context);
+            context.IsLocked = false;
             Ultralight.ulViewUnlockJSContext(Handle);
         }
-
-        /// <summary>
-        /// Helper function to evaluate a raw string of JavaScript and return the
-        /// result as a String.
-        /// </summary>
-        /// <param name="script">A string of JavaScript to evaluate in the main frame.</param>
-        /// <param name="exception">The resulting string when an exception has occured.</param>
-        /// <returns>The JavaScript result as a string.</returns>
-        public string EvaluateScript(string script, out string exception)
-            => Ultralight.ulViewEvaluateScript(Handle, script, out exception);
 
         /// <summary>
         /// Load a raw string of HTML.
@@ -400,21 +387,6 @@ namespace Oxide
 
         private void handleHistoryUpdate(IntPtr userData, IntPtr caller)
             => OnHistoryUpdated?.Invoke(this, EventArgs.Empty);
-    }
-
-    public static class ViewExtensions
-    {
-        /// <summary>
-        /// Helper method to perform actions within the <see cref="JSContext"/> ensuring that it is
-        /// unlocked after use.
-        /// </summary>
-        /// <param name="view">This view.</param>
-        /// <param name="action">Action invoked while the <see cref="JSContext"/> is locked.</param>
-        public static void GetJSContext(this View view, Action<JSContext> action)
-        {
-            action(view.LockJSContext());
-            view.UnlockJSContext();
-        }
     }
 
     public enum ViewMessageSource
@@ -561,162 +533,4 @@ namespace Oxide
 
     internal delegate void ChangeCursorCallback(IntPtr userData, IntPtr caller, CursorType cursor);
     internal delegate void UpdateHistoryCallback(IntPtr userData, IntPtr caller);
-
-#pragma warning disable CA2101 // Custom marshaler is used
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateView(IntPtr renderer, uint width, uint height, IntPtr viewConfig, IntPtr session);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyView(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
-        internal static extern string ulViewGetURL(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler), MarshalCookie = "DoNotDestroy")]
-        internal static extern string ulViewGetTitle(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulViewGetWidth(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulViewGetHeight(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulViewIsLoading(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern RenderTarget ulViewGetRenderTarget(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulViewGetSurface(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewLoadHTML(
-            IntPtr view,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string html
-        );
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewLoadURL(
-            IntPtr view,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string url
-        );
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewResize(IntPtr view, uint width, uint height);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulViewLockJSContext(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewUnlockJSContext(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))]
-        internal static extern string ulViewEvaluateScript(
-            IntPtr view,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string jsString,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] out string exception);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulViewCanGoBack(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulViewCanGoForward(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewGoBack(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewGoForward(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewGoToHistoryOffset(IntPtr view, int offset);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewReload(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewStop(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewFocus(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewUnfocus(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulViewHasFocus(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulViewHasInputFocus(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewFireKeyEvent(IntPtr view, IntPtr keyEvent);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewFireMouseEvent(IntPtr view, IntPtr mouseEvent);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewFireScrollEvent(IntPtr view, IntPtr scrollEvent);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeTitleCallback(IntPtr view, ChangePropertyCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeURLCallback(IntPtr view, ChangePropertyCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeTooltipCallback(IntPtr view, ChangePropertyCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetChangeCursorCallback(IntPtr view, ChangeCursorCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetCreateChildViewCallback(IntPtr view, CreateChildViewCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetAddConsoleMessageCallback(IntPtr view, AddConsoleMessageCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetBeginLoadingCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetFinishLoadingCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetFailLoadingCallback(IntPtr view, FailLoadingCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetWindowObjectReadyCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetDOMReadyCallback(IntPtr view, LoadingCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ulViewSetUpdateHistoryCallback(IntPtr view, UpdateHistoryCallback callback, IntPtr userData);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewSetNeedsPaint(IntPtr view, [MarshalAs(UnmanagedType.I1)] bool needsPaint);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulViewGetNeedsPaint(IntPtr view);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulViewCreateInspectorView(IntPtr view);
-    }
-
-#pragma warning restore CA2101
-
 }

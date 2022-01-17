@@ -1,7 +1,4 @@
-using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using Oxide.Input;
 
 namespace Oxide.Input
 {
@@ -30,23 +27,5 @@ namespace Oxide.Input
 
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroyScrollEvent(Handle);
-    }
-
-    public enum ScrollEventType
-    {
-        ScrollByPixel,
-        ScrollByPage,
-    }
-}
-
-namespace Oxide
-{
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateScrollEvent(ScrollEventType type, int xDelta, int yDelta);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyScrollEvent(IntPtr evt);
     }
 }

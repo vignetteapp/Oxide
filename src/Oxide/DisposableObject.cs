@@ -1,18 +1,34 @@
 using System;
+using System.Threading;
 
 namespace Oxide
 {
     public abstract class DisposableObject : IDisposable
     {
-        private bool isDisposed;
-        private readonly bool owned;
+        protected bool IsDisposed { get; private set; }
+        protected readonly bool IsOwned;
 
-        internal IntPtr Handle { get; }
+        private volatile int disposeSignaled = 0;
+        private readonly IntPtr handle;
+
+        internal IntPtr Handle
+        {
+            get
+            {
+                if (IsDisposed && IsOwned)
+                    throw new ObjectDisposedException(GetType().Name);
+
+                if (handle == IntPtr.Zero)
+                    throw new InvalidOperationException(@"This object has yet to be initialized.");
+
+                return handle;
+            }
+        }
 
         protected DisposableObject(IntPtr handle, bool owned = true)
         {
-            Handle = handle;
-            this.owned = owned;
+            IsOwned = owned;
+            this.handle = handle;
         }
 
         protected virtual void DisposeUnmanaged()
@@ -25,16 +41,19 @@ namespace Oxide
 
         protected void Dispose(bool disposing)
         {
-            if (isDisposed)
+            if (Interlocked.Exchange(ref disposeSignaled, 1) != 0)
+                return;
+
+            if (IsDisposed)
                 return;
 
             if (disposing)
                 DisposeManaged();
 
-            if (owned)
+            if (IsOwned)
                 DisposeUnmanaged();
 
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         ~DisposableObject()

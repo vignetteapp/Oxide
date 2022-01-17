@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Oxide.Graphics;
 using Oxide.Graphics.Bitmaps;
 
 namespace Oxide.Graphics
@@ -129,47 +128,5 @@ namespace Oxide.Graphics
 
             return ((GCHandle)definition).Target as T;
         }
-    }
-}
-
-namespace Oxide
-{
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulSurfaceGetWidth(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulSurfaceGetHeight(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulSurfaceGetRowBytes(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulSurfaceGetSize(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulSurfaceLockPixels(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulSurfaceUnlockPixels(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulSurfaceResize(IntPtr surface, uint width, uint height);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulSurfaceSetDirtyBounds(IntPtr surface, RectI bounds);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern RectI ulSurfaceGetDirtyBounds(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulSurfaceClearDirtyBounds(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulSurfaceGetUserData(IntPtr surface);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulBitmapSurfaceGetBitmap(IntPtr surface);
     }
 }

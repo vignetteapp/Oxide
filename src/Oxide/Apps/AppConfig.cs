@@ -1,7 +1,3 @@
-using System;
-using System.Runtime.InteropServices;
-using Oxide.Interop;
-
 namespace Oxide.Apps
 {
     public class AppConfig : DisposableObject
@@ -98,48 +94,4 @@ namespace Oxide.Apps
         protected override void DisposeUnmanaged()
             => AppCore.ulDestroySettings(Handle);
     }
-
-#pragma warning disable CA2101
-
-    public partial class AppCore
-    {
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateSettings();
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulDestroySettings(IntPtr settings);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulSettingsSetDeveloperName(
-            IntPtr settings,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string name
-        );
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulSettingsSetAppName(
-            IntPtr settings,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string name
-        );
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulSettingsSetFileSystemPath(
-            IntPtr settings,
-            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string path
-        );
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulSettingsSetLoadShadersFromFileSystem(
-            IntPtr settings,
-            [MarshalAs(UnmanagedType.I1)] bool enabled
-        );
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulSettingsSetForceCPURenderer(
-            IntPtr settings,
-            [MarshalAs(UnmanagedType.I1)] bool forceCpu
-        );
-    }
-
-#pragma warning restore CA2101
-
 }

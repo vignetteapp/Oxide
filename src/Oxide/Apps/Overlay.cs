@@ -1,6 +1,4 @@
-using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 namespace Oxide.Apps
 {
@@ -122,58 +120,5 @@ namespace Oxide.Apps
 
         protected override void DisposeUnmanaged()
             => AppCore.ulDestroyOverlay(Handle);
-    }
-
-    public partial class AppCore
-    {
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateOverlay(IntPtr window, uint width, uint height, int x, int y);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateOverlayWithView(IntPtr window, IntPtr view, int x, int y);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulDestroyOverlay(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulOverlayGetView(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulOverlayGetWidth(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulOverlayGetHeight(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern int ulOverlayGetX(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern int ulOverlayGetY(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulOverlayMoveTo(IntPtr overlay, int x, int y);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulOverlayResize(IntPtr overlay, uint width, uint height);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulOverlayIsHidden(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulOverlayHide(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulOverlayShow(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulOverlayHasFocus(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulOverlayFocus(IntPtr overlay);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulOverlayUnfocus(IntPtr overlay);
     }
 }

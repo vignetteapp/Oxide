@@ -1,7 +1,5 @@
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using Oxide.Graphics.Bitmaps;
 
 namespace Oxide.Graphics.Bitmaps
 {
@@ -148,76 +146,4 @@ namespace Oxide.Graphics.Bitmaps
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroyBitmap(Handle);
     }
-}
-
-namespace Oxide
-{
-
-#pragma warning disable CA2101 // Custom marshaler is used
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateEmptyBitmap();
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateBitmap(uint width, uint height, BitmapFormat format);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateBitmapFromPixels(uint width, uint height, BitmapFormat format, uint rowBytes, IntPtr pixels, uint size, [MarshalAs(UnmanagedType.I1)] bool shouldCopy);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateBitmapFromCopy(IntPtr existingBitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyBitmap(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulBitmapGetWidth(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulBitmapGetHeight(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern BitmapFormat ulBitmapGetFormat(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulBitmapGetBpp(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulBitmapGetRowBytes(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern uint ulBitmapGetSize(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulBitmapOwnsPixels(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulBitmapLockPixels(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulBitmapUnlockPixels(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulBitmapRawPixels(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulBitmapIsEmpty(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulBitmapErase(IntPtr bitmap);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CharSet = CharSet.Ansi, BestFitMapping = true, ThrowOnUnmappableChar = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulBitmapWritePNG(IntPtr bitmap, [MarshalAs(UnmanagedType.LPStr)] string path);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulBitmapSwapRedBlueChannels(IntPtr bitmap);
-    }
-
-#pragma warning restore CA2101
-
 }

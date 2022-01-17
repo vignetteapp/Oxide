@@ -3,7 +3,7 @@ using System;
 namespace Oxide.JavaScript.Objects
 {
     [Flags]
-    public enum JSPropertyAttribute
+    public enum JSPropertyAttribute : uint
     {
         /// <summary>
         /// Specifies that a property has no special attributes.

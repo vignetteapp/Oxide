@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Oxide.Input;
 
 namespace Oxide.Apps
@@ -195,6 +194,12 @@ namespace Oxide.Apps
         public Overlay CreateOverlay()
             => CreateOverlay(Width, Height, 0, 0);
 
+        /// <summary>
+        /// Creates a new overlay from this window with a given view.
+        /// </summary>
+        public Overlay CreateOverlay(View view)
+            => new Overlay(this, view, 0, 0);
+
         protected override void DisposeManaged()
         {
             resize -= handleResize;
@@ -220,83 +225,4 @@ namespace Oxide.Apps
 
     internal delegate void CloseCallback(IntPtr userData, IntPtr window);
     internal delegate void ResizeCallback(IntPtr userData, IntPtr window, uint width, uint height);
-
-#pragma warning disable CA2101
-
-    public partial class AppCore
-    {
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateWindow(IntPtr monitor, uint width, uint height, [MarshalAs(UnmanagedType.I1)] bool fullscreen, WindowFlags windowFlags);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulDestroyWindow(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowSetCloseCallback(IntPtr window, CloseCallback callback, IntPtr userData);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowSetResizeCallback(IntPtr window, ResizeCallback callback, IntPtr userData);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulWindowGetScreenWidth(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulWindowGetWidth(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulWindowGetScreenHeight(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern uint ulWindowGetHeight(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowMoveTo(IntPtr window, int x, int y);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowMoveToCenter(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern int ulWindowGetPositionX(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern int ulWindowGetPositionY(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulWindowIsFullScreen(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern double ulWindowGetScale(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true, CharSet = CharSet.Ansi, ThrowOnUnmappableChar = true, BestFitMapping = true)]
-        internal static extern void ulWindowSetTitle(IntPtr window, [MarshalAs(UnmanagedType.LPStr)] string title);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowSetCursor(IntPtr window, CursorType cursor);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowShow(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowHide(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulWindowIsVisible(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern void ulWindowClose(IntPtr window);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern int ulWindowScreenToPixels(IntPtr window, int val);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern int ulWindowPixelsToScreen(IntPtr window, int val);
-
-        [DllImport(LIB_APPCORE, ExactSpelling = true)]
-        internal static extern IntPtr ulWindowGetNativeHandle(IntPtr window);
-    }
-
-#pragma warning restore CA2101
-
 }

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 using Oxide.JavaScript.Interop;
 using Oxide.JavaScript.Objects;
 
@@ -12,68 +10,121 @@ namespace Oxide.JavaScript
         /// <summary>
         /// Gets the global object for this <see cref="JSContext"/>.
         /// </summary>
-        public readonly JSObject Global;
+        public readonly dynamic Global;
+
+        /// <summary>
+        /// Gets whether this context is locked.
+        /// </summary>
+        public bool IsLocked { get; internal set; }
+
+        /// <summary>
+        /// Gets whether this context is available.
+        /// </summary>
+        public bool IsAvailable => !IsDisposed && IsLocked;
+
+        internal new IntPtr Handle
+        {
+            get
+            {
+                if (!IsAvailable && !IsOwned)
+                    throw new InvalidOperationException(@"Attempted to perform operations while the context is unavailable.");
+
+                return base.Handle;
+            }
+        }
 
         internal readonly JSValueRefConverter Converter;
         internal readonly HostObjectProxy Proxy;
+        private readonly List<JSObjectCallAsConstructorCallback> constructors = new List<JSObjectCallAsConstructorCallback>();
 
-        private readonly Dictionary<TypeRegistry, IntPtr> typeCache = new Dictionary<TypeRegistry, IntPtr>();
-
-        public JSContext(IntPtr handle)
-            : base(handle)
+        internal JSContext(IntPtr handle, bool owned = true)
+            : base(handle, owned)
         {
             Converter = new JSValueRefConverter(this);
-            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(Handle));
+            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(Handle), false);
             Proxy = new HostObjectProxy(this);
         }
 
-        public void RegisterHostType<T>() => RegisterHostType(typeof(T), true);
+        /// <summary>
+        /// Registers a host type making it available for use in JavaScript.
+        /// </summary>
+        /// <param name="name">
+        /// The alias this type will go under as. Leave null to use the type's name.
+        /// However it must be set when the type has generic type parameters.
+        /// </param>
+        /// <typeparam name="T">The type to make available to JavaScript.</typeparam>
+        public void RegisterHostType<T>(string name = null) => RegisterHostType(typeof(T), name);
 
-        internal IntPtr RegisterHostType(Type type, bool makeConstructor)
+        /// <summary>
+        /// Registers a host type making it available for use in JavaScript.
+        /// </summary>
+        /// <param name="name">
+        /// The alias this type will go under as. Leave null to use the type's name.
+        /// However it must be set when the type has generic type parameters.
+        /// </param>
+        /// <param name="type">The type to make available to JavaScript.</param>
+        public void RegisterHostType(Type type, string name = null) => RegisterHostType(type, name, true);
+
+        /// <summary>
+        /// Performs garbage collection forcibly.
+        /// </summary>
+        public void GarbageCollect() => JSCore.JSGarbageCoillect(Handle);
+
+        /// <summary>
+        /// Evaluates a given script. Similar to JavaScript's eval().
+        /// </summary>
+        /// <param name="script">The script to evaluate.</param>
+        /// <param name="exception">The captured Javascript Error object.</param>
+        /// <returns>Anything the evaluation may return or <see cref="Undefined"/>.</returns>
+        /// <exception cref="JavaScriptException">Thrown when the script provided is invalid.</exception>
+        public object Evaluate(string script)
         {
-            var cached = typeCache.FirstOrDefault(pair => pair.Key.FullName == type.FullName);
+            if (!JSCore.JSCheckScriptSyntax(Handle, script, null, 1, out var error))
+                throw new JavaScriptException((JSObject)Converter.ConvertJSValue(error));
 
-            if (typeCache.Keys.Any(k => k.FullName == type.FullName))
-            {
-                if (makeConstructor)
-                    makeTypeAvailable(type, cached.Value);
+            var value = JSCore.JSEvaluateScript(Handle, script, ((JSObject)Global).Handle, null, 1, out error);
+            var converted = Converter.ConvertJSValue(value);
 
-                return cached.Value;
-            }
+            if (error != IntPtr.Zero)
+                throw new JavaScriptException((JSObject)Converter.ConvertJSValue(error));
 
-            var registry = new TypeRegistry
-            {
-                AssemblyName = type.AssemblyQualifiedName,
-                FullName = type.FullName
-            };
+            return converted;
+        }
 
-            var klass = Proxy.MakeDerivedClass(registry);
-            typeCache.Add(registry, klass);
+        internal IntPtr RegisterHostType(Type type, string name = null, bool makeConstructor = true)
+        {
+            var klass = Proxy.GetJSClassFor(type, out var data);
 
             if (makeConstructor)
-                makeTypeAvailable(type, klass);
+            {
+                if (type.GenericTypeArguments.Length > 0 && string.IsNullOrEmpty(name))
+                    throw new ArgumentNullException(nameof(name));
+
+                makeTypeAvailable(name ?? type.Name, klass, data);
+            }
 
             return klass;
         }
 
-        protected override void DisposeUnmanaged()
+        private void makeTypeAvailable(string name, IntPtr klass, IntPtr privateData)
         {
-            foreach (var klass in typeCache.Values)
-                JSCore.JSClassRelease(klass);
+            JSObjectCallAsConstructorCallback callback;
 
+            var constructor = JSCore.JSObjectMakeConstructor(Handle, klass, callback = Proxy.HandleConstructor);
+            var prototype = JSCore.JSObjectGetProperty(Handle, constructor, "prototype", out _);
+
+            JSCore.JSObjectSetPrivate(prototype, privateData);
+
+            Global[name] = new JSObject(this, constructor);
+            constructors.Add(callback);
+        }
+
+        protected override void DisposeManaged()
+        {
             Proxy.Dispose();
+            constructors.Clear();
         }
 
-        private void makeTypeAvailable(Type type, IntPtr klass)
-        {
-            dynamic global = Global;
-            global[type.Name] = new JSObject(this, JSCore.JSObjectMakeConstructor(Handle, klass, Proxy.HandleConstructor));
-        }
-    }
-
-    public partial class JSCore
-    {
-        [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSContextGetGlobalObject(IntPtr ctx);
+        protected override void DisposeUnmanaged() => JSCore.JSGlobalContextRelease(Handle);
     }
 }

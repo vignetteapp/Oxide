@@ -1,7 +1,4 @@
-using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using Oxide.Input;
 
 namespace Oxide.Input
 {
@@ -32,32 +29,5 @@ namespace Oxide.Input
 
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroyMouseEvent(Handle);
-    }
-
-    public enum MouseEventType
-    {
-        MouseMoved,
-        MouseDown,
-        MouseUp,
-    }
-
-    public enum MouseButton
-    {
-        None,
-        Left,
-        Middle,
-        Right,
-    }
-}
-
-namespace Oxide
-{
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateMouseEvent(MouseEventType type, int x, int y, MouseButton button);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyMouseEvent(IntPtr evt);
     }
 }

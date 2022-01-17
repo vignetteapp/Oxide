@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Oxide.Apps;
 
 namespace Oxide
@@ -83,29 +82,5 @@ namespace Oxide
             Ultralight.ulDestroyRenderer(Handle);
             Current = null;
         }
-    }
-
-    public partial class Ultralight
-    {
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateRenderer(IntPtr config);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulDestroyRenderer(IntPtr renderer);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulUpdate(IntPtr renderer);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulRender(IntPtr renderer);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulPurgeMemory(IntPtr renderer);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulLogMemoryUsage(IntPtr renderer);
-
-        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulDefaultSession(IntPtr renderer);
     }
 }

@@ -8,7 +8,7 @@ namespace Oxide.JavaScript.Objects
         [MarshalAs(UnmanagedType.LPUTF8Str)]
         internal string Name;
 
-        internal JSObjectCallAsFunctionCallback GetProperty;
+        internal JSObjectCallAsFunctionCallbackEx Call;
 
         internal JSPropertyAttribute Attributes;
     }
