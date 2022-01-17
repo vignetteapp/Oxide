@@ -15,8 +15,7 @@ We have not provided NuGet packages as we're still on the process of tidying out
 
 You need the following Prerequisites to develop on Oxide:
 
-- .NET 6.0
-- Your game engine of choice (Optional).
+- .NET 5.0
 
 However, we also provide pre-built environments via Gitpod and GitHub Codespaces.
 
