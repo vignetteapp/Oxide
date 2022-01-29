@@ -1,5 +1,6 @@
 <p align="center">
-   <img src="https://user-images.githubusercontent.com/14976516/149072689-87b793fa-dd4b-42fa-aa78-9cf0e76ac472.png">
+   <img src="https://user-images.githubusercontent.com/14976516/149072689-87b793fa-dd4b-42fa-aa78-9cf0e76ac472.png#gh-light-mode-only">
+   <img src="https://user-images.githubusercontent.com/31413538/151637510-56c0e646-34dc-4c34-a6f4-56e56a4e0d02.png#gh-dark-mode-only">
 </p>
 
 # Oxide
