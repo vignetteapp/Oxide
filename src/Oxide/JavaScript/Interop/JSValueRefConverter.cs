@@ -3,9 +3,9 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript.Objects;
 
-namespace Oxide.JavaScript.Interop
+namespace Oxide.Javascript.Interop
 {
     public class JSValueRefConverter
     {

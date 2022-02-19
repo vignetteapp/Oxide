@@ -461,7 +461,7 @@ namespace Oxide
         internal static extern void ulViewConfigSetEnableImages(IntPtr config, [MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern void ulViewConfigSetEnableJavaScript(IntPtr config, [MarshalAs(UnmanagedType.I1)] bool enabled);
+        internal static extern void ulViewConfigSetEnableJavascript(IntPtr config, [MarshalAs(UnmanagedType.I1)] bool enabled);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulViewConfigSetFontFamilyStandard(

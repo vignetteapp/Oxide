@@ -159,11 +159,11 @@ namespace Oxide
         private uint overrideRAMSize;
 
         /// <summary>
-        /// JavaScriptCore tries to detect the system's physical RAM size to set
+        /// JavascriptCore tries to detect the system's physical RAM size to set
         /// reasonable allocation limits. Set this to anything other than 0 to
         /// override the detected value. Size is in bytes.
         /// <br/>
-        /// This can be used to force JavaScriptCore to be more conservative with
+        /// This can be used to force JavascriptCore to be more conservative with
         /// its allocation strategy (at the cost of some performance).
         /// </summary>
         public uint OverrideRAMSize
@@ -175,7 +175,7 @@ namespace Oxide
         private uint minLargeHeapSize;
 
         /// <summary>
-        /// The minimum size of large VM heaps in JavaScriptCore. Set this to a
+        /// The minimum size of large VM heaps in JavascriptCore. Set this to a
         /// lower value to make these heaps start with a smaller initial value.
         /// </summary>
         public uint MinLargeHeapSize
@@ -187,7 +187,7 @@ namespace Oxide
         private uint minSmallHeapSize;
 
         /// <summary>
-        /// The minimum size of small VM heaps in JavaScriptCore. Set this to a
+        /// The minimum size of small VM heaps in JavascriptCore. Set this to a
         /// lower value to make these heaps start with a smaller initial value.
         /// </summary>
         public uint MinSmallHeapSize

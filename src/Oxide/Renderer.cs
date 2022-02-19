@@ -61,7 +61,7 @@ namespace Oxide
             => Ultralight.ulRender(Handle);
 
         /// <summary>
-        /// Update timers and dispatch internal callbacks (JavaScript and network).
+        /// Update timers and dispatch internal callbacks (Javascript and network).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Update()

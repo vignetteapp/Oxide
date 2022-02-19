@@ -62,17 +62,17 @@ namespace Oxide
             set => Ultralight.ulViewConfigSetEnableImages(Handle, enableImages = value);
         }
 
-        private bool enableJavaScript;
+        private bool enableJavascript;
 
         /// <summary>
-        /// Gets or sets whether JavaScript should be enabled.
+        /// Gets or sets whether Javascript should be enabled.
         /// <br/>
         /// (Default = True)
         /// </summary>
-        public bool EnableJavaScript
+        public bool EnableJavascript
         {
-            get => enableJavaScript;
-            set => Ultralight.ulViewConfigSetEnableJavaScript(Handle, enableJavaScript = value);
+            get => enableJavascript;
+            set => Ultralight.ulViewConfigSetEnableJavascript(Handle, enableJavascript = value);
         }
 
         private string fontFamilyStandard;

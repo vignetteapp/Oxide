@@ -4,7 +4,7 @@
 using System;
 using NUnit.Framework;
 using Oxide.Interop;
-using Oxide.JavaScript.Interop;
+using Oxide.Javascript.Interop;
 
 namespace Oxide.Tests
 {

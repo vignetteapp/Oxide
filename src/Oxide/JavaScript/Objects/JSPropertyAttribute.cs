@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Oxide.JavaScript.Objects
+namespace Oxide.Javascript.Objects
 {
     [Flags]
     public enum JSPropertyAttribute : uint

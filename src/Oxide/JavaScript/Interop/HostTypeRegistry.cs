@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript.Objects;
 
-namespace Oxide.JavaScript.Interop
+namespace Oxide.Javascript.Interop
 {
     [StructLayout(LayoutKind.Sequential)]
     internal class HostTypeRegistry

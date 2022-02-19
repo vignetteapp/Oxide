@@ -3,10 +3,10 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Oxide.JavaScript.Interop;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript.Interop;
+using Oxide.Javascript.Objects;
 
-namespace Oxide.JavaScript
+namespace Oxide.Javascript
 {
     public class JSCore
     {

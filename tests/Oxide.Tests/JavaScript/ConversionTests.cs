@@ -2,12 +2,12 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using NUnit.Framework;
-using Oxide.JavaScript;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript;
+using Oxide.Javascript.Objects;
 
-namespace Oxide.Tests.JavaScript
+namespace Oxide.Tests.Javascript
 {
-    public class ConversionTests : JavaScriptTestBase
+    public class ConversionTests : JavascriptTestBase
     {
         [Test]
         public void TestConvertNumber()

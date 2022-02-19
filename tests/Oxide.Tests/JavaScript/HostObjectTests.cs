@@ -3,11 +3,11 @@
 
 using System.Collections.Generic;
 using NUnit.Framework;
-using Oxide.JavaScript;
+using Oxide.Javascript;
 
-namespace Oxide.Tests.JavaScript
+namespace Oxide.Tests.Javascript
 {
-    public class HostObjectTests : JavaScriptTestBase
+    public class HostObjectTests : JavascriptTestBase
     {
         [Test]
         public void TestConvertHostObject()
@@ -27,7 +27,7 @@ namespace Oxide.Tests.JavaScript
             Context.Global.myField = myField;
             Context.Evaluate("myField.TestField = true");
             Assert.IsTrue((bool)Context.Evaluate("myField.TestField"));
-            Assert.Throws<JavaScriptException>(() => Context.Evaluate("myField.TestFieldReadOnly = true"));
+            Assert.Throws<JavascriptException>(() => Context.Evaluate("myField.TestFieldReadOnly = true"));
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace Oxide.Tests.JavaScript
             Context.Evaluate("myProp.TestPropertySet = true");
             Assert.IsTrue((bool)Context.Evaluate("myProp.TestPropertyGet"));
 
-            Assert.Throws<JavaScriptException>(() => Context.Evaluate("myProp.TestPropertyGet = false"));
+            Assert.Throws<JavascriptException>(() => Context.Evaluate("myProp.TestPropertyGet = false"));
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace Oxide.Tests.JavaScript
             Context.Evaluate("myMethod.TestMethod(\"Hello World\")");
             Assert.AreEqual("Hello World", myMethod.TestString);
             Assert.AreEqual("Lorem Ipsum", Context.Evaluate("myMethod.TestMethodWithReturn(\"Lorem Ipsum\")"));
-            Assert.Throws<JavaScriptException>(() => Context.Evaluate("myMethod.TestMethod()"));
+            Assert.Throws<JavascriptException>(() => Context.Evaluate("myMethod.TestMethod()"));
         }
 
         [Test]
@@ -81,7 +81,7 @@ namespace Oxide.Tests.JavaScript
             Context.Evaluate("myList.Add('hello world')");
             Assert.AreEqual("hello world", Context.Evaluate("myList[0]"));
 
-            Assert.Throws<JavaScriptException>(() => Context.Evaluate("myList.Add(42)"));
+            Assert.Throws<JavascriptException>(() => Context.Evaluate("myList.Add(42)"));
         }
 
         public class TestClass

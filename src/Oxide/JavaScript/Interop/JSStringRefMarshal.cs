@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Oxide.JavaScript.Interop
+namespace Oxide.Javascript.Interop
 {
     internal class JSStringRefMarshal : ICustomMarshaler
     {

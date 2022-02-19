@@ -2,18 +2,18 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using System;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript.Objects;
 
-namespace Oxide.JavaScript
+namespace Oxide.Javascript
 {
-    public class JavaScriptException : Exception
+    public class JavascriptException : Exception
     {
-        public JavaScriptException(JSObject error)
+        public JavascriptException(JSObject error)
             : base(format(error))
         {
         }
 
-        public JavaScriptException(JSObject error, Exception innerException)
+        public JavascriptException(JSObject error, Exception innerException)
             : base(format(error), innerException)
         {
         }

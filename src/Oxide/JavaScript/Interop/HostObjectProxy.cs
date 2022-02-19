@@ -9,10 +9,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript.Objects;
 using UnmanageUtility;
 
-namespace Oxide.JavaScript.Interop
+namespace Oxide.Javascript.Interop
 {
     internal class HostObjectProxy : DisposableObject
     {

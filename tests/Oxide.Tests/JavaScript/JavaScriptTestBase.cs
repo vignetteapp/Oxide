@@ -2,11 +2,11 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using NUnit.Framework;
-using Oxide.JavaScript;
+using Oxide.Javascript;
 
-namespace Oxide.Tests.JavaScript
+namespace Oxide.Tests.Javascript
 {
-    public abstract class JavaScriptTestBase
+    public abstract class JavascriptTestBase
     {
         protected JSContextGroup Group { get; private set; }
         protected JSContext Context { get; private set; }

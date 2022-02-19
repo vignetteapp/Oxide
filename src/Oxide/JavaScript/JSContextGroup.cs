@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Oxide.JavaScript
+namespace Oxide.Javascript
 {
     public class JSContextGroup : DisposableObject
     {

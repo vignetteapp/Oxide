@@ -3,7 +3,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace Oxide.JavaScript.Objects
+namespace Oxide.Javascript.Objects
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct JSStaticValue

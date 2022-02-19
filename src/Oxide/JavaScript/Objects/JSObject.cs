@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace Oxide.JavaScript.Objects
+namespace Oxide.Javascript.Objects
 {
     public class JSObject : DynamicObject, IDisposable
     {
@@ -27,7 +27,7 @@ namespace Oxide.JavaScript.Objects
         }
 
         /// <summary>
-        /// Gets the JavaScript object's class name.
+        /// Gets the Javascript object's class name.
         /// </summary>
         public string ClassName
         {
@@ -39,32 +39,32 @@ namespace Oxide.JavaScript.Objects
         }
 
         /// <summary>
-        /// Gets whether this JavaScript object is a wrapped .NET Object.
+        /// Gets whether this Javascript object is a wrapped .NET Object.
         /// </summary>
         public bool IsHostObject => JSCore.JSValueIsObjectOfClass(Context.Handle, Handle, Context.Proxy.Wrapper);
 
         /// <summary>
-        /// Gets whether this JavaScript object is an array.
+        /// Gets whether this Javascript object is an array.
         /// </summary>
         public bool IsArray => JSCore.JSValueIsArray(Context.Handle, Handle);
 
         /// <summary>
-        /// Gets whther this JavaScript object is a function.
+        /// Gets whther this Javascript object is a function.
         /// </summary>
         public bool IsFunction => JSCore.JSObjectIsFunction(Context.Handle, Handle);
 
         /// <summary>
-        /// Gets whether this JavaScript object is a promise.
+        /// Gets whether this Javascript object is a promise.
         /// </summary>
         public bool IsPromise => ClassName == @"Promise";
 
         /// <summary>
-        /// Gets whether this JavaScript object is a constructor.
+        /// Gets whether this Javascript object is a constructor.
         /// </summary>
         public bool IsConstructor => JSCore.JSObjectIsConstructor(Context.Handle, Handle);
 
         /// <summary>
-        /// Gets this JavaScript object's array type.
+        /// Gets this Javascript object's array type.
         /// </summary>
         public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context.Handle, Handle, out _);
 
@@ -225,7 +225,7 @@ namespace Oxide.JavaScript.Objects
         private void throwOnError(IntPtr error)
         {
             if (error != IntPtr.Zero)
-                throw new JavaScriptException((JSObject)Context.Converter.ConvertJSValue(error));
+                throw new JavascriptException((JSObject)Context.Converter.ConvertJSValue(error));
         }
 
         protected virtual void Dispose(bool disposing)

@@ -8,7 +8,7 @@ using Oxide.Graphics;
 using Oxide.Graphics.Drivers;
 using Oxide.Input;
 using Oxide.Interop;
-using Oxide.JavaScript;
+using Oxide.Javascript;
 
 namespace Oxide
 {
@@ -167,7 +167,7 @@ namespace Oxide
         public event EventHandler<ViewLoadFailEventArgs> OnFailLoading;
 
         /// <summary>
-        /// Called whenever the JavaScript Window object is ready.
+        /// Called whenever the Javascript Window object is ready.
         /// </summary>
         public event EventHandler<ViewLoadEventArgs> OnWindowObjectReady;
 

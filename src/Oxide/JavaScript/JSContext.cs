@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using Oxide.JavaScript.Interop;
-using Oxide.JavaScript.Objects;
+using Oxide.Javascript.Interop;
+using Oxide.Javascript.Objects;
 
-namespace Oxide.JavaScript
+namespace Oxide.Javascript
 {
     public class JSContext : DisposableObject
     {
@@ -49,23 +49,23 @@ namespace Oxide.JavaScript
         }
 
         /// <summary>
-        /// Registers a host type making it available for use in JavaScript.
+        /// Registers a host type making it available for use in Javascript.
         /// </summary>
         /// <param name="name">
         /// The alias this type will go under as. Leave null to use the type's name.
         /// However it must be set when the type has generic type parameters.
         /// </param>
-        /// <typeparam name="T">The type to make available to JavaScript.</typeparam>
+        /// <typeparam name="T">The type to make available to Javascript.</typeparam>
         public void RegisterHostType<T>(string name = null) => RegisterHostType(typeof(T), name);
 
         /// <summary>
-        /// Registers a host type making it available for use in JavaScript.
+        /// Registers a host type making it available for use in Javascript.
         /// </summary>
         /// <param name="name">
         /// The alias this type will go under as. Leave null to use the type's name.
         /// However it must be set when the type has generic type parameters.
         /// </param>
-        /// <param name="type">The type to make available to JavaScript.</param>
+        /// <param name="type">The type to make available to Javascript.</param>
         public void RegisterHostType(Type type, string name = null) => RegisterHostType(type, name, true);
 
         /// <summary>
@@ -74,22 +74,22 @@ namespace Oxide.JavaScript
         public void GarbageCollect() => JSCore.JSGarbageCoillect(Handle);
 
         /// <summary>
-        /// Evaluates a given script. Similar to JavaScript's eval().
+        /// Evaluates a given script. Similar to Javascript's eval().
         /// </summary>
         /// <param name="script">The script to evaluate.</param>
         /// <param name="exception">The captured Javascript Error object.</param>
         /// <returns>Anything the evaluation may return or <see cref="Undefined"/>.</returns>
-        /// <exception cref="JavaScriptException">Thrown when the script provided is invalid.</exception>
+        /// <exception cref="JavascriptException">Thrown when the script provided is invalid.</exception>
         public object Evaluate(string script)
         {
             if (!JSCore.JSCheckScriptSyntax(Handle, script, null, 1, out var error))
-                throw new JavaScriptException((JSObject)Converter.ConvertJSValue(error));
+                throw new JavascriptException((JSObject)Converter.ConvertJSValue(error));
 
             var value = JSCore.JSEvaluateScript(Handle, script, ((JSObject)Global).Handle, null, 1, out error);
             var converted = Converter.ConvertJSValue(value);
 
             if (error != IntPtr.Zero)
-                throw new JavaScriptException((JSObject)Converter.ConvertJSValue(error));
+                throw new JavascriptException((JSObject)Converter.ConvertJSValue(error));
 
             return converted;
         }
