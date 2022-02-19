@@ -13,6 +13,7 @@ namespace Oxide
 
         private volatile int disposeSignaled = 0;
         private readonly IntPtr handle;
+        private readonly object sync = new object();
 
         internal IntPtr Handle
         {
@@ -24,7 +25,8 @@ namespace Oxide
                 if (handle == IntPtr.Zero)
                     throw new InvalidOperationException(@"This object has yet to be initialized.");
 
-                return handle;
+                lock (sync)
+                    return handle;
             }
         }
 
