@@ -3,9 +3,8 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Oxide.Javascript.Interop;
 
-namespace Oxide.Javascript.Objects
+namespace Oxide.Javascript.Interop
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct JSClassDefinition

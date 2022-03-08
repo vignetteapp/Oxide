@@ -69,5 +69,13 @@ namespace Oxide.Tests.Javascript
             Assert.AreEqual(result[1], "world");
             Assert.AreEqual(result[2], 42);
         }
+
+        [Test]
+        public void TestConvertFunction()
+        {
+            dynamic result = Context.Evaluate("(function() { return true })");
+            Assert.IsInstanceOf<JSObject>(result);
+            Assert.IsTrue(result());
+        }
     }
 }

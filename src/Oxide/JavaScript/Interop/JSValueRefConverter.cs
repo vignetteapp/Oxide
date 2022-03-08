@@ -7,16 +7,9 @@ using Oxide.Javascript.Objects;
 
 namespace Oxide.Javascript.Interop
 {
-    public class JSValueRefConverter
+    internal static class JSValueRefConverter
     {
-        private readonly JSContext context;
-
-        public JSValueRefConverter(JSContext context)
-        {
-            this.context = context;
-        }
-
-        public IntPtr ConvertHostObject(object value)
+        public static IntPtr ConvertHostObject(IntPtr ctx, object value)
         {
             switch (value)
             {
@@ -24,91 +17,103 @@ namespace Oxide.Javascript.Interop
                     return jsObject.Handle;
 
                 case bool booleanValue:
-                    return JSCore.JSValueMakeBoolean(context.Handle, booleanValue);
+                    return JSCore.JSValueMakeBoolean(ctx, booleanValue);
 
                 case sbyte byteValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, byteValue);
+                    return JSCore.JSValueMakeNumber(ctx, byteValue);
 
                 case byte byteValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, byteValue);
+                    return JSCore.JSValueMakeNumber(ctx, byteValue);
 
                 case short shortValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, shortValue);
+                    return JSCore.JSValueMakeNumber(ctx, shortValue);
 
                 case ushort ushortValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, ushortValue);
+                    return JSCore.JSValueMakeNumber(ctx, ushortValue);
 
                 case int intValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, intValue);
+                    return JSCore.JSValueMakeNumber(ctx, intValue);
 
                 case uint uintValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, uintValue);
+                    return JSCore.JSValueMakeNumber(ctx, uintValue);
 
                 case long longValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, longValue);
+                    return JSCore.JSValueMakeNumber(ctx, longValue);
 
                 case ulong ulongValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, ulongValue);
+                    return JSCore.JSValueMakeNumber(ctx, ulongValue);
 
                 case double doubleValue:
-                    return JSCore.JSValueMakeNumber(context.Handle, doubleValue);
+                    return JSCore.JSValueMakeNumber(ctx, doubleValue);
 
                 case string stringValue:
-                    return JSCore.JSValueMakeString(context.Handle, stringValue);
+                    return JSCore.JSValueMakeString(ctx, stringValue);
 
                 case Undefined:
-                    return JSCore.JSValueMakeUndefined(context.Handle);
+                    return JSCore.JSValueMakeUndefined(ctx);
 
                 case object:
-                    {
-                        var klass = context.RegisterHostType(value.GetType(), null, false);
-                        var handle = GCHandle.Alloc(value, GCHandleType.Normal);
-                        var pointer = GCHandle.ToIntPtr(handle);
-                        return JSCore.JSObjectMake(context.Handle, klass, pointer);
-                    }
+                    return JSCore.JSObjectMake(ctx, HostObjectProxy.Handle, GCHandle.ToIntPtr(GCHandle.Alloc(new HostObject(value), GCHandleType.Normal)));
 
                 case null:
-                    return JSCore.JSValueMakeNull(context.Handle);
+                    return JSCore.JSValueMakeNull(ctx);
             }
         }
 
-        public object ConvertJSValue(IntPtr value)
+        public static object ConvertJSValue(IntPtr ctx, IntPtr value)
         {
-            var type = JSCore.JSValueGetType(context.Handle, value);
+            var type = JSCore.JSValueGetType(ctx, value);
+
+            IntPtr error = IntPtr.Zero;
+            object result = null;
 
             switch (type)
             {
                 case JSType.Boolean:
-                    return JSCore.JSValueToBoolean(context.Handle, value);
+                    result = JSCore.JSValueToBoolean(ctx, value);
+                    break;
 
                 case JSType.Number:
-                    return JSCore.JSValueToNumber(context.Handle, value, out _);
+                    result = JSCore.JSValueToNumber(ctx, value, out error);
+                    break;
+
+                case JSType.String:
+                    result = JSCore.JSValueToString(ctx, value, out error);
+                    break;
+
+                case JSType.Undefined:
+                    result = Undefined.Value;
+                    break;
 
                 case JSType.Symbol:
                 case JSType.Object:
                     {
-                        if (JSCore.JSValueIsArray(context.Handle, value) && JSCore.JSValueGetTypedArrayType(context.Handle, value, out _) != JSTypedArrayType.None)
-                            return new JSTypedArray(context, value);
+                        if (JSCore.JSValueIsArray(ctx, value))
+                        {
+                            result = new JSTypedArray(ctx, value);
+                            break;
+                        }
 
-                        var obj = new JSObject(context, value);
+                        result = new JSObject(ctx, value);
 
-                        if (obj.IsHostObject)
-                            return obj.GetHostObject();
+                        if (((JSObject)result).IsHostObject)
+                        {
+                            result = ((JSObject)result).GetHostObject();
+                            break;
+                        }
 
-                        return obj;
+                        break;
                     }
-
-                case JSType.String:
-                    return JSCore.JSValueToString(context.Handle, value, out _);
-
-                case JSType.Undefined:
-                    return Undefined.Value;
 
                 case JSType.Null:
                 default:
-                    return null;
+                    break;
             }
+
+            if (error != IntPtr.Zero)
+                throw JavascriptException.GetException(ctx, error);
+
+            return result;
         }
     }
 }
-

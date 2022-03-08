@@ -71,17 +71,15 @@ namespace Oxide.Tests.Javascript
         }
 
         [Test]
-        public void TestList()
+        public void TestListGeneric()
         {
-            Context.RegisterHostType<List<string>>("StringList");
-            var myList = Context.Evaluate("new StringList()");
+            Context.RegisterHostType<List<string>>("TestList");
+            var myList = Context.Evaluate("new TestList()");
             Assert.IsInstanceOf<List<string>>(myList);
 
             Context.Global.myList = new List<string>();
             Context.Evaluate("myList.Add('hello world')");
             Assert.AreEqual("hello world", Context.Evaluate("myList[0]"));
-
-            Assert.Throws<JavascriptException>(() => Context.Evaluate("myList.Add(42)"));
         }
 
         public class TestClass

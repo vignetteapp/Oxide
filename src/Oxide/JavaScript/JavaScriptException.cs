@@ -6,18 +6,35 @@ using Oxide.Javascript.Objects;
 
 namespace Oxide.Javascript
 {
-    public class JavascriptException : Exception
+    internal class JavascriptException : Exception
     {
-        public JavascriptException(JSObject error)
-            : base(format(error))
+        public static Exception GetException(IntPtr context, IntPtr handle)
         {
-        }
+            var jsObject = new JSObject(context, handle, false);
 
-        public JavascriptException(JSObject error, Exception innerException)
-            : base(format(error), innerException)
-        {
+            if (jsObject.IsHostObject)
+            {
+                var hostObject = jsObject.GetHostObject();
+
+                if (hostObject is Exception e)
+                    return new JavascriptException("An exception has occurred from the host.", e);
+
+                return new JavascriptException(hostObject.ToString());
+            }
+
+            return new JavascriptException(format(jsObject));
         }
 
         private static string format(dynamic error) => $"{error.name}: {error.message}";
+
+        private JavascriptException(string message)
+            : base(message)
+        {
+        }
+
+        private JavascriptException(string message, Exception underlyingException)
+            : base(message, underlyingException)
+        {
+        }
     }
 }

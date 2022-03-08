@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Oxide.Javascript.Objects
+namespace Oxide.Javascript.Interop
 {
     [Flags]
     public enum JSClassAttributes

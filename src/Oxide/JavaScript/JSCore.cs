@@ -4,7 +4,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Oxide.Javascript.Interop;
-using Oxide.Javascript.Objects;
 
 namespace Oxide.Javascript
 {
@@ -231,7 +230,7 @@ namespace Oxide.Javascript
         internal static extern IntPtr JSObjectGetTypedArrayBytesPtr(IntPtr ctx, IntPtr obj, out IntPtr exception);
 
         [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern uint JSObjectGetTyepdArrayLength(IntPtr ctx, IntPtr obj, out IntPtr exception);
+        internal static extern uint JSObjectGetTypedArrayLength(IntPtr ctx, IntPtr obj, out IntPtr exception);
 
         [DllImport(LIB_WEBCORE, ExactSpelling = true)]
         internal static extern uint JSObjectGetTypedArrayByteLength(IntPtr ctx, IntPtr obj, out IntPtr exception);

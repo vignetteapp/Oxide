@@ -2,7 +2,6 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using System;
-using System.Collections.Generic;
 using Oxide.Javascript.Interop;
 using Oxide.Javascript.Objects;
 
@@ -36,16 +35,10 @@ namespace Oxide.Javascript
             }
         }
 
-        internal readonly JSValueRefConverter Converter;
-        internal readonly HostObjectProxy Proxy;
-        private readonly List<JSObjectCallAsConstructorCallback> constructors = new List<JSObjectCallAsConstructorCallback>();
-
         internal JSContext(IntPtr handle, bool owned = true)
             : base(handle, owned)
         {
-            Converter = new JSValueRefConverter(this);
-            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(Handle), false);
-            Proxy = new HostObjectProxy(this);
+            Global = new JSObject(handle, JSCore.JSContextGetGlobalObject(Handle), false);
         }
 
         /// <summary>
@@ -61,12 +54,21 @@ namespace Oxide.Javascript
         /// <summary>
         /// Registers a host type making it available for use in Javascript.
         /// </summary>
+        /// <param name="type">The type to make available to Javascript.</param>
         /// <param name="name">
         /// The alias this type will go under as. Leave null to use the type's name.
         /// However it must be set when the type has generic type parameters.
         /// </param>
-        /// <param name="type">The type to make available to Javascript.</param>
-        public void RegisterHostType(Type type, string name = null) => RegisterHostType(type, name, true);
+        public void RegisterHostType(Type type, string name = null)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            // if (type.IsGenericType)
+            //     throw new ArgumentException($"{type.Name} contains generic arguments.", nameof(type));
+
+            Global[name ?? type.Name] = type;
+        }
 
         /// <summary>
         /// Performs garbage collection forcibly.
@@ -82,50 +84,15 @@ namespace Oxide.Javascript
         /// <exception cref="JavascriptException">Thrown when the script provided is invalid.</exception>
         public object Evaluate(string script)
         {
-            if (!JSCore.JSCheckScriptSyntax(Handle, script, null, 1, out var error))
-                throw new JavascriptException((JSObject)Converter.ConvertJSValue(error));
+            IntPtr value = IntPtr.Zero;
 
-            var value = JSCore.JSEvaluateScript(Handle, script, ((JSObject)Global).Handle, null, 1, out error);
-            var converted = Converter.ConvertJSValue(value);
+            if (JSCore.JSCheckScriptSyntax(Handle, script, null, 1, out var error))
+                value = JSCore.JSEvaluateScript(Handle, script, ((JSObject)Global).Handle, null, 1, out error);
 
             if (error != IntPtr.Zero)
-                throw new JavascriptException((JSObject)Converter.ConvertJSValue(error));
+                throw JavascriptException.GetException(Handle, error);
 
-            return converted;
-        }
-
-        internal IntPtr RegisterHostType(Type type, string name = null, bool makeConstructor = true)
-        {
-            var klass = Proxy.GetJSClassFor(type, out var data);
-
-            if (makeConstructor)
-            {
-                if (type.GenericTypeArguments.Length > 0 && string.IsNullOrEmpty(name))
-                    throw new ArgumentNullException(nameof(name));
-
-                makeTypeAvailable(name ?? type.Name, klass, data);
-            }
-
-            return klass;
-        }
-
-        private void makeTypeAvailable(string name, IntPtr klass, IntPtr privateData)
-        {
-            JSObjectCallAsConstructorCallback callback;
-
-            var constructor = JSCore.JSObjectMakeConstructor(Handle, klass, callback = Proxy.HandleConstructor);
-            var prototype = JSCore.JSObjectGetProperty(Handle, constructor, "prototype", out _);
-
-            JSCore.JSObjectSetPrivate(prototype, privateData);
-
-            Global[name] = new JSObject(this, constructor);
-            constructors.Add(callback);
-        }
-
-        protected override void DisposeManaged()
-        {
-            Proxy.Dispose();
-            constructors.Clear();
+            return JSValueRefConverter.ConvertJSValue(Handle, value);
         }
 
         protected override void DisposeUnmanaged() => JSCore.JSGlobalContextRelease(Handle);
