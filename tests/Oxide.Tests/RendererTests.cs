@@ -7,6 +7,7 @@ using Oxide.Apps;
 
 namespace Oxide.Tests
 {
+    [Ignore("Cannot run in headless")]
     public class RendererTests : RendererTestBase
     {
         [Test]
