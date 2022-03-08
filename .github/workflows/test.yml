@@ -15,7 +15,7 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Test
-        run: dotnet test --logger "trx;LogFileName=TestResults-Oxide.Tests.trx"
+        run: dotnet test tests/Oxide.Tests --logger "trx;LogFileName=TestResults-Oxide.Tests.trx"
 
       - name: Upload Results
         uses: actions/upload-artifact@v2

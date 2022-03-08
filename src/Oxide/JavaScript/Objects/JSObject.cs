@@ -54,8 +54,9 @@ namespace Oxide.Javascript.Objects
         public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context, Handle, out _);
 
         protected readonly IntPtr Context;
+        private readonly object protectLock = new object();
+        private int protectCount;
         private volatile int disposeSignal = 0;
-        private readonly bool protect;
         private readonly IntPtr handle;
         private bool isDisposed;
 
@@ -63,10 +64,15 @@ namespace Oxide.Javascript.Objects
         {
             Context = context;
             this.handle = handle;
-            this.protect = protect;
 
-            if (this.protect)
+            if (!protect)
+                return;
+
+            lock (protectLock)
+            {
+                Interlocked.Increment(ref protectCount);
                 JSCore.JSValueProtect(context, Handle);
+            }
         }
 
         public override IEnumerable<string> GetDynamicMemberNames()
@@ -90,22 +96,22 @@ namespace Oxide.Javascript.Objects
         {
             result = Undefined.Value;
 
-            if (indexes.Length > 1 && indexes[0] is not string)
+            if (indexes.Length > 1)
                 return false;
 
-            if (!JSCore.JSObjectHasProperty(Context, Handle, (string)indexes[0]))
+            if (!JSCore.JSObjectHasProperty(Context, Handle, indexes[0].ToString()))
                 return false;
 
             IntPtr error;
             IntPtr value;
 
-            if (uint.TryParse((string)indexes[0], out uint num))
+            if (uint.TryParse(indexes[0].ToString(), out uint num))
             {
                 value = JSCore.JSObjectGetPropertyAtIndex(Context, Handle, num, out error);
             }
             else
             {
-                value = JSCore.JSObjectGetProperty(Context, Handle, (string)indexes[0], out error);
+                value = JSCore.JSObjectGetProperty(Context, Handle, indexes[0].ToString(), out error);
             }
 
             result = JSValueRefConverter.ConvertJSValue(Context, value);
@@ -215,8 +221,11 @@ namespace Oxide.Javascript.Objects
             if (isDisposed || Interlocked.Exchange(ref disposeSignal, 1) != 0)
                 return;
 
-            if (protect)
-                JSCore.JSValueUnprotect(Context, Handle);
+            lock (protectLock)
+            {
+                if (Interlocked.Exchange(ref protectCount, 0) == 1)
+                    JSCore.JSValueUnprotect(Context, Handle);
+            }
 
             isDisposed = true;
         }
