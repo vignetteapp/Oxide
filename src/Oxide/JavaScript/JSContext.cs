@@ -24,6 +24,11 @@ namespace Oxide.Javascript
         /// </summary>
         public bool IsAvailable => !IsDisposed && IsLocked;
 
+        /// <summary>
+        /// Gets whether this context is disposed.
+        /// </summary>
+        public new bool IsDisposed => base.IsDisposed;
+
         internal new IntPtr Handle
         {
             get
@@ -35,10 +40,15 @@ namespace Oxide.Javascript
             }
         }
 
+        internal readonly JSValueRefConverter Converter;
+        internal readonly HostObjectProxy Proxy;
+
         internal JSContext(IntPtr handle, bool owned = true)
             : base(handle, owned)
         {
-            Global = new JSObject(handle, JSCore.JSContextGetGlobalObject(Handle), false);
+            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(Handle), false);
+            Proxy = new HostObjectProxy(this);
+            Converter = new JSValueRefConverter(this);
         }
 
         /// <summary>
@@ -90,11 +100,12 @@ namespace Oxide.Javascript
                 value = JSCore.JSEvaluateScript(Handle, script, ((JSObject)Global).Handle, null, 1, out error);
 
             if (error != IntPtr.Zero)
-                throw JavascriptException.GetException(Handle, error);
+                throw JavascriptException.Throw(this, error);
 
-            return JSValueRefConverter.ConvertJSValue(Handle, value);
+            return Converter.ConvertJSValue(value);
         }
 
+        protected override void DisposeManaged() => Proxy.Dispose();
         protected override void DisposeUnmanaged() => JSCore.JSGlobalContextRelease(Handle);
     }
 }

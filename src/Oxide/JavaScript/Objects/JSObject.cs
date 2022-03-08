@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Oxide.Javascript.Interop;
 using UnmanageUtility;
 
@@ -31,36 +30,33 @@ namespace Oxide.Javascript.Objects
         /// <summary>
         /// Gets whether this Javascript object is a wrapped .NET Object.
         /// </summary>
-        public bool IsHostObject => JSCore.JSValueIsObjectOfClass(Context, Handle, HostObjectProxy.Handle);
+        public bool IsHostObject => JSCore.JSValueIsObjectOfClass(Context.Handle, Handle, Context.Proxy.Handle);
 
         /// <summary>
         /// Gets whether this Javascript object is an array.
         /// </summary>
-        public bool IsArray => JSCore.JSValueIsArray(Context, Handle);
+        public bool IsArray => JSCore.JSValueIsArray(Context.Handle, Handle);
 
         /// <summary>
         /// Gets whther this Javascript object is a function.
         /// </summary>
-        public bool IsFunction => JSCore.JSObjectIsFunction(Context, Handle);
+        public bool IsFunction => JSCore.JSObjectIsFunction(Context.Handle, Handle);
 
         /// <summary>
         /// Gets whether this Javascript object is a constructor.
         /// </summary>
-        public bool IsConstructor => JSCore.JSObjectIsConstructor(Context, Handle);
+        public bool IsConstructor => JSCore.JSObjectIsConstructor(Context.Handle, Handle);
 
         /// <summary>
         /// Gets this Javascript object's array type.
         /// </summary>
-        public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context, Handle, out _);
+        public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context.Handle, Handle, out _);
 
-        protected readonly IntPtr Context;
-        private readonly object protectLock = new object();
-        private int protectCount;
-        private volatile int disposeSignal = 0;
+        protected readonly JSContext Context;
         private readonly IntPtr handle;
         private bool isDisposed;
 
-        internal JSObject(IntPtr context, IntPtr handle, bool protect = true)
+        internal JSObject(JSContext context, IntPtr handle, bool protect = true)
         {
             Context = context;
             this.handle = handle;
@@ -68,17 +64,13 @@ namespace Oxide.Javascript.Objects
             if (!protect)
                 return;
 
-            lock (protectLock)
-            {
-                Interlocked.Increment(ref protectCount);
-                JSCore.JSValueProtect(context, Handle);
-            }
+            JSCore.JSValueProtect(context.Handle, Handle);
         }
 
         public override IEnumerable<string> GetDynamicMemberNames()
         {
             var members = new List<string>();
-            var accumulator = JSCore.JSObjectCopyPropertyNames(Context, Handle);
+            var accumulator = JSCore.JSObjectCopyPropertyNames(Context.Handle, Handle);
             uint length = JSCore.JSPropertyNameArrayGetCount(accumulator);
 
             for (uint i = 0; i < length; i++)
@@ -99,7 +91,7 @@ namespace Oxide.Javascript.Objects
             if (indexes.Length > 1)
                 return false;
 
-            if (!JSCore.JSObjectHasProperty(Context, Handle, indexes[0].ToString()))
+            if (!JSCore.JSObjectHasProperty(Context.Handle, Handle, indexes[0].ToString()))
                 return false;
 
             IntPtr error;
@@ -107,14 +99,14 @@ namespace Oxide.Javascript.Objects
 
             if (uint.TryParse(indexes[0].ToString(), out uint num))
             {
-                value = JSCore.JSObjectGetPropertyAtIndex(Context, Handle, num, out error);
+                value = JSCore.JSObjectGetPropertyAtIndex(Context.Handle, Handle, num, out error);
             }
             else
             {
-                value = JSCore.JSObjectGetProperty(Context, Handle, indexes[0].ToString(), out error);
+                value = JSCore.JSObjectGetProperty(Context.Handle, Handle, indexes[0].ToString(), out error);
             }
 
-            result = JSValueRefConverter.ConvertJSValue(Context, value);
+            result = Context.Converter.ConvertJSValue(value);
 
             throwOnError(error);
 
@@ -123,15 +115,15 @@ namespace Oxide.Javascript.Objects
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            if (JSCore.JSObjectHasProperty(Context, Handle, binder.Name))
+            if (JSCore.JSObjectHasProperty(Context.Handle, Handle, binder.Name))
             {
-                var value = JSCore.JSObjectGetProperty(Context, Handle, binder.Name, out var error);
-                result = JSValueRefConverter.ConvertJSValue(Context, value);
+                var value = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error);
+                result = Context.Converter.ConvertJSValue(value);
                 throwOnError(error);
             }
             else
             {
-                result = JSValueRefConverter.ConvertHostObject(Context, Undefined.Value);
+                result = Context.Converter.ConvertHostObject(Undefined.Value);
             }
 
             return true;
@@ -146,11 +138,11 @@ namespace Oxide.Javascript.Objects
 
             if (uint.TryParse((string)indexes[0], out uint num))
             {
-                JSCore.JSObjectSetPropertyAtIndex(Context, Handle, num, JSValueRefConverter.ConvertHostObject(Context, value), out error);
+                JSCore.JSObjectSetPropertyAtIndex(Context.Handle, Handle, num, Context.Converter.ConvertHostObject(value), out error);
             }
             else
             {
-                JSCore.JSObjectSetProperty(Context, Handle, (string)indexes[0], JSValueRefConverter.ConvertHostObject(Context, value));
+                JSCore.JSObjectSetProperty(Context.Handle, Handle, (string)indexes[0], Context.Converter.ConvertHostObject(value));
             }
 
             throwOnError(error);
@@ -159,22 +151,22 @@ namespace Oxide.Javascript.Objects
         }
 
         public override bool TrySetMember(SetMemberBinder binder, object value)
-            => JSCore.JSObjectSetProperty(Context, Handle, binder.Name, JSValueRefConverter.ConvertHostObject(Context, value));
+            => JSCore.JSObjectSetProperty(Context.Handle, Handle, binder.Name, Context.Converter.ConvertHostObject(value));
 
         public override bool TryDeleteMember(DeleteMemberBinder binder)
         {
-            bool result = JSCore.JSObjectDeleteProperty(Context, Handle, binder.Name, out var error);
+            bool result = JSCore.JSObjectDeleteProperty(Context.Handle, Handle, binder.Name, out var error);
             throwOnError(error);
             return result;
         }
 
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
-            using (var arr = new UnmanagedArray<IntPtr>(new Span<IntPtr>(args.Select(v => JSValueRefConverter.ConvertHostObject(Context, v)).ToArray())))
+            using (var arr = new UnmanagedArray<IntPtr>(new Span<IntPtr>(args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray())))
             {
-                result = JSValueRefConverter.ConvertJSValue(Context,
+                result = Context.Converter.ConvertJSValue(
                     JSCore.JSObjectCallAsFunction(
-                        Context, Handle, Handle, (uint)args.Length, arr.Ptr, out var error
+                        Context.Handle, Handle, Handle, (uint)args.Length, arr.Ptr, out var error
                     )
                 );
 
@@ -186,13 +178,13 @@ namespace Oxide.Javascript.Objects
 
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
-            var function = JSCore.JSObjectGetProperty(Context, Handle, binder.Name, out var error);
+            var function = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error);
 
-            using (var arr = new UnmanagedArray<IntPtr>(new Span<IntPtr>(args.Select(v => JSValueRefConverter.ConvertHostObject(Context, v)).ToArray())))
+            using (var arr = new UnmanagedArray<IntPtr>(new Span<IntPtr>(args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray())))
             {
-                result = JSValueRefConverter.ConvertJSValue(Context,
+                result = Context.Converter.ConvertJSValue(
                     JSCore.JSObjectCallAsFunction(
-                        Context, function, Handle, (uint)args.Length, arr.Ptr, out error
+                        Context.Handle, function, Handle, (uint)args.Length, arr.Ptr, out error
                     )
                 );
 
@@ -213,19 +205,16 @@ namespace Oxide.Javascript.Objects
         private void throwOnError(IntPtr error)
         {
             if (error != IntPtr.Zero)
-                throw JavascriptException.GetException(Context, error);
+                throw JavascriptException.Throw(Context, error);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (isDisposed || Interlocked.Exchange(ref disposeSignal, 1) != 0)
+            if (isDisposed)
                 return;
 
-            lock (protectLock)
-            {
-                if (Interlocked.Exchange(ref protectCount, 0) == 1)
-                    JSCore.JSValueUnprotect(Context, Handle);
-            }
+            if (!Context.IsDisposed)
+                JSCore.JSValueUnprotect(Context.Handle, Handle);
 
             isDisposed = true;
         }

@@ -8,7 +8,7 @@ namespace Oxide.Javascript
 {
     internal class JavascriptException : Exception
     {
-        public static Exception GetException(IntPtr context, IntPtr handle)
+        public static Exception Throw(JSContext context, IntPtr handle)
         {
             var jsObject = new JSObject(context, handle, false);
 
