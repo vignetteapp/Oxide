@@ -1,13 +1,5 @@
 name: Test
-on:
-  workflow_call:
-    inputs:
-      name:
-        required: true
-        type: string
-      path:
-        required: true
-        type: string
+on: [ push, pull_request ]
 
 jobs:
   test:
@@ -23,12 +15,12 @@ jobs:
           dotnet-version: '5.0.x'
 
       - name: Test
-        run: dotnet test ${{ inputs.path }} --logger "trx;LogFileName=TestResults-${{ inputs.name }}.trx"
+        run: dotnet test --logger "trx;LogFileName=TestResults-Oxide.Tests.trx"
 
       - name: Upload Results
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
-          name: TestResults-${{ inputs.name }}
-          path: ${{ github.workspace }}/${{ inputs.path }}/TestResults/TestResults-${{ inputs.name }}.trx
+          name: TestResults-Oxide.Tests
+          path: ${{ github.workspace }}/tests/Oxide.Tests/TestResults/TestResults-Oxide.Tests.trx
 
