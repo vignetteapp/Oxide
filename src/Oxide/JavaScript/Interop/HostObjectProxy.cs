@@ -6,11 +6,10 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using UnmanageUtility;
 
 namespace Oxide.Javascript.Interop
 {
-    internal sealed class HostObjectProxy : IDisposable
+    internal unsafe sealed class HostObjectProxy : IDisposable
     {
         public readonly IntPtr Handle;
         private readonly JSClassDefinition def;
@@ -156,7 +155,14 @@ namespace Oxide.Javascript.Interop
             if (hostObject?.Target is Type type)
             {
                 exception = IntPtr.Zero;
-                return context.Converter.ConvertHostObject(Activator.CreateInstance(type, convertArgsFromHandle(argumentCount, argumentsHandle)));
+
+                var arr = new Span<IntPtr>((void*)argumentsHandle, (int)argumentCount);
+
+                return context.Converter.ConvertHostObject(
+                    Activator.CreateInstance(
+                        type, arr.ToArray().Select(a => context.Converter.ConvertJSValue(a))
+                    )
+                );
             }
 
             exception = context.Converter.ConvertHostObject(new InvalidOperationException($"{hostObject.Type.Name} is not a constructor."));
@@ -175,7 +181,9 @@ namespace Oxide.Javascript.Interop
 
                 if (hostMethod.Target is HostMethod method)
                 {
-                    var result = method.Invoke(hostTarget.Target, convertArgsFromHandle(argumentCount, argumentsHandle));
+                    var arr = new Span<IntPtr>((void*)argumentsHandle, (int)argumentCount);
+                    var result = method.Invoke(hostTarget.Target, arr.ToArray().Select(arg => context.Converter.ConvertJSValue(arg)).ToArray());
+
                     if (method.Method is MethodInfo mi && mi.ReturnType != typeof(void))
                         return context.Converter.ConvertHostObject(result);
                 }
@@ -200,30 +208,6 @@ namespace Oxide.Javascript.Interop
                 return null;
 
             return GCHandle.FromIntPtr(data).Target as HostObject;
-        }
-
-        private object[] convertArgsFromHandle(uint argumentCount, IntPtr argumentsHandle)
-        {
-            object[] convertedArgs = Array.Empty<object>();
-
-            if (argumentCount > 0)
-            {
-                var args = new UnmanagedArray<IntPtr>((int)argumentCount);
-                args.CopyFrom(argumentsHandle, 0, (int)argumentCount);
-                convertedArgs = args.Select(arg => context.Converter.ConvertJSValue(arg)).ToArray();
-            }
-
-            return convertedArgs;
-        }
-
-        private IntPtr convertArgsToHandle(params object[] args)
-        {
-            if (args.Length == 0)
-                return IntPtr.Zero;
-
-            var argsSpan = new Span<IntPtr>(args.Select(a => context.Converter.ConvertHostObject(a)).ToArray());
-            var argsHandle = new UnmanagedArray<IntPtr>(argsSpan);
-            return argsHandle.Ptr;
         }
 
         private static bool tryChangeType(object value, Type type, out object result)

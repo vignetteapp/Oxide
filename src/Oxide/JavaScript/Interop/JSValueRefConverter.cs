@@ -26,6 +26,9 @@ namespace Oxide.Javascript.Interop
                 case bool booleanValue:
                     return JSCore.JSValueMakeBoolean(context.Handle, booleanValue);
 
+                case char charValue:
+                    return JSCore.JSValueMakeString(context.Handle, charValue.ToString());
+
                 case sbyte byteValue:
                     return JSCore.JSValueMakeNumber(context.Handle, byteValue);
 

@@ -51,9 +51,14 @@ namespace Oxide.Tests.Javascript
             var myMethod = new TestClassWithMethod();
 
             Context.Global.myMethod = myMethod;
-            Context.Evaluate("myMethod.TestMethod(\"Hello World\")");
+
+            var res1 = Context.Evaluate("myMethod.TestMethod(\"Hello World\")");
+            Assert.AreEqual(res1, Undefined.Value);
             Assert.AreEqual("Hello World", myMethod.TestString);
-            Assert.AreEqual("Lorem Ipsum", Context.Evaluate("myMethod.TestMethodWithReturn(\"Lorem Ipsum\")"));
+
+            var res2 = Context.Evaluate("myMethod.TestMethodWithReturn(\"Lorem Ipsum\")");
+            Assert.AreEqual("Lorem Ipsum", res2);
+
             Assert.Throws<JavascriptException>(() => Context.Evaluate("myMethod.TestMethod()"));
         }
 

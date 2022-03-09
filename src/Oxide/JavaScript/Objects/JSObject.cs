@@ -7,11 +7,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Oxide.Javascript.Interop;
-using UnmanageUtility;
 
 namespace Oxide.Javascript.Objects
 {
-    public class JSObject : DynamicObject, IDisposable
+    public unsafe class JSObject : DynamicObject, IDisposable
     {
         internal IntPtr Handle
         {
@@ -162,15 +161,13 @@ namespace Oxide.Javascript.Objects
 
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
-            using (var arr = new UnmanagedArray<IntPtr>(new Span<IntPtr>(args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray())))
+            fixed (void* arr = args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray())
             {
                 result = Context.Converter.ConvertJSValue(
                     JSCore.JSObjectCallAsFunction(
-                        Context.Handle, Handle, Handle, (uint)args.Length, arr.Ptr, out var error
+                        Context.Handle, Handle, Handle, (uint)args.Length, (IntPtr)arr, out var error
                     )
                 );
-
-                throwOnError(error);
             }
 
             return true;
@@ -180,15 +177,13 @@ namespace Oxide.Javascript.Objects
         {
             var function = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error);
 
-            using (var arr = new UnmanagedArray<IntPtr>(new Span<IntPtr>(args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray())))
+            fixed (void* arr = new Span<IntPtr>(args.Select(v => Context.Converter.ConvertHostObject(v)).ToArray()))
             {
                 result = Context.Converter.ConvertJSValue(
                     JSCore.JSObjectCallAsFunction(
-                        Context.Handle, function, Handle, (uint)args.Length, arr.Ptr, out error
+                        Context.Handle, function, Handle, (uint)args.Length, (IntPtr)arr, out error
                     )
                 );
-
-                throwOnError(error);
             }
 
             return true;

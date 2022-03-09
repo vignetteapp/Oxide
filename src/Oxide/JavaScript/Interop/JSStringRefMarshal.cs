@@ -43,15 +43,14 @@ namespace Oxide.Javascript.Interop
         {
             uint copied = 0;
             uint length = JSCore.JSStringGetMaximumUTF8CStringSize(pNativeData);
-            byte[] data = new byte[(int)length];
+            Span<byte> buffer = new byte[(int)length];
 
-            fixed (byte* pointer = data)
+            fixed (byte* pointer = buffer)
             {
                 copied = JSCore.JSStringGetUTF8CString(pNativeData, pointer, length);
             }
 
-            Array.Resize(ref data, (int)copied - 1);
-            return Encoding.UTF8.GetString(data);
+            return Encoding.UTF8.GetString(buffer[..((int)copied - 1)]);
         }
     }
 }

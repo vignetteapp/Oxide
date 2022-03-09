@@ -51,10 +51,11 @@ namespace Oxide.Tests.Javascript
         [Test]
         public void TestConvertObject()
         {
-            dynamic result = Context.Evaluate("({ myProp: true })");
+            dynamic result = Context.Evaluate("({ myProp: true, myFunc: () => true })");
             Assert.IsInstanceOf<JSObject>(result);
             Assert.IsInstanceOf<bool>(result.myProp);
             Assert.AreEqual(result.myProp, true);
+            Assert.AreEqual(result.myFunc(), true);
         }
 
         [Test]
@@ -73,9 +74,13 @@ namespace Oxide.Tests.Javascript
         [Test]
         public void TestConvertFunction()
         {
-            dynamic result = Context.Evaluate("(function() { return true })");
-            Assert.IsInstanceOf<JSObject>(result);
-            Assert.IsTrue(result());
+            dynamic func1 = Context.Evaluate("(function() { return true })");
+            Assert.IsInstanceOf<JSObject>(func1);
+            Assert.IsTrue(func1());
+
+            dynamic func2 = Context.Evaluate("(function(msg) { return msg + ' World' })");
+            Assert.IsInstanceOf<JSObject>(func2);
+            Assert.AreEqual(func2("Hello"), "Hello World");
         }
     }
 }
