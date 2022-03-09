@@ -17,13 +17,11 @@ namespace Oxide.Examples.FileSystem
         {
             string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            var fs = new AssemblyBackedFileSystem(Assembly.GetExecutingAssembly());
-
             AppCore.EnablePlatformFileSystem(Path.Combine(basePath, "assets"));
             AppCore.EnableDefaultLogger(Path.Combine(basePath, "ultralight.log"));
             AppCore.EnablePlatformFontLoader();
 
-            Platform.SetFileSystem(fs);
+            Platform.FileSystem = new AssemblyBackedFileSystem(Assembly.GetExecutingAssembly());
 
             Renderer renderer;
             View view;

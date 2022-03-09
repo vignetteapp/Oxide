@@ -6,7 +6,7 @@ using System;
 namespace Oxide.Javascript.Interop
 {
     [Flags]
-    public enum JSClassAttributes
+    internal enum JSClassAttributes
     {
         /// <summary>
         /// Specifies that a class has no special attributes.

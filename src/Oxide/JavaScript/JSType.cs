@@ -3,7 +3,7 @@
 
 namespace Oxide.Javascript
 {
-    public enum JSType
+    internal enum JSType
     {
         /// <summary>
         /// The unique undefined value.

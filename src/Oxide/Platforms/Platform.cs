@@ -17,10 +17,10 @@ namespace Oxide.Platforms
         private static Logger logger;
         private static GPUDriver gpuDriver;
         private static IGPUDriver gpuDriverImpl;
-        private static Clipboard plClipboard;
-        private static IClipboard plClipboardImpl;
-        private static FileSystem plFileSystem;
-        private static IFileSystem plFileSystemImpl;
+        private static Clipboard clipboard;
+        private static IClipboard clipboardImpl;
+        private static FileSystem fileSystem;
+        private static IFileSystem fileSystemImpl;
         private static SurfaceDefinition surfaceDefinition;
         private static ISurfaceDefinition surfaceImpl;
 
@@ -30,8 +30,10 @@ namespace Oxide.Platforms
         /// Sets the logger callback.
         /// </summary>
         /// <param name="callback">The callback.</param>
-        public static void SetLogger(LoggerMessageCallback callback)
-            => Ultralight.ulPlatformSetLogger(logger = new Logger { LogMessage = callback });
+        public static LoggerMessageCallback Logger
+        {
+            set => Ultralight.ulPlatformSetLogger(logger = new Logger { LogMessage = value });
+        }
 
         /// <summary>
         /// Sets the surface definition.
@@ -39,29 +41,32 @@ namespace Oxide.Platforms
         /// Used when <see cref="ViewConfig.IsAccelerated"/> = false.
         /// </summary>
         /// <param name="definition">The surface definition to use.</param>
-        public static void SetSurfaceDefinition(ISurfaceDefinition definition)
+        public static ISurfaceDefinition SetSurfaceDefinition
         {
-            surfaceImpl = definition;
-            Ultralight.ulPlatformSetSurfaceDefinition(surfaceDefinition = new SurfaceDefinition
+            set
             {
-                Create = (w, h) =>
+                surfaceImpl = value;
+                Ultralight.ulPlatformSetSurfaceDefinition(surfaceDefinition = new SurfaceDefinition
                 {
-                    definition.Create(w, h);
-                    return GCHandle.ToIntPtr(GCHandle.Alloc(definition, GCHandleType.Normal));
-                },
-                Destroy = u =>
-                {
-                    definition.Destroy();
-                    GCHandle.FromIntPtr(u).Free();
-                },
-                GetSize = _ => definition.ByteSize,
-                GetWidth = _ => definition.Width,
-                GetHeight = _ => definition.Height,
-                GetRowBytes = _ => definition.RowBytes,
-                LockPixels = _ => definition.LockPixels(),
-                UnlockPixels = _ => definition.UnlockPixels(),
-                Resize = (_, w, h) => definition.Resize(w, h),
-            });
+                    Create = (w, h) =>
+                    {
+                        value.Create(w, h);
+                        return GCHandle.ToIntPtr(GCHandle.Alloc(value, GCHandleType.Normal));
+                    },
+                    Destroy = u =>
+                    {
+                        value.Destroy();
+                        GCHandle.FromIntPtr(u).Free();
+                    },
+                    GetSize = _ => value.ByteSize,
+                    GetWidth = _ => value.Width,
+                    GetHeight = _ => value.Height,
+                    GetRowBytes = _ => value.RowBytes,
+                    LockPixels = _ => value.LockPixels(),
+                    UnlockPixels = _ => value.UnlockPixels(),
+                    Resize = (_, w, h) => value.Resize(w, h),
+                });
+            }
         }
 
         /// <summary>
@@ -70,58 +75,67 @@ namespace Oxide.Platforms
         /// Used when <see cref="ViewConfig.IsAccelerated"/> = true.
         /// </summary>
         /// <param name="driver">The driver to use.</param>
-        public static void SetGPUDriver(IGPUDriver driver)
+        public static IGPUDriver SetGPUDriver
         {
-            gpuDriverImpl = driver;
-            Ultralight.ulPlatformSetGPUDriver(gpuDriver = new GPUDriver
+            set
             {
-                BeginSynchronize = driver.BeginSynchronize,
-                EndSynchronize = driver.EndSynchronize,
-                NextTextureId = driver.GetNextTextureId,
-                CreateTexture = (i, b) => driver.CreateTexture(i, new Bitmap(b, false)),
-                UpdateTexture = (i, b) => driver.UpdateTexture(i, new Bitmap(b, false)),
-                DestroyTexture = driver.DestroyTexture,
-                NextGeometryId = driver.GetNextGeometryId,
-                CreateGeometry = driver.CreateGeometry,
-                UpdateGeometry = driver.UpdateGeometry,
-                DestroyGeometry = driver.DestroyGeometry,
-                NextRenderBufferId = driver.GetNextRenderBufferId,
-                CreateRenderBuffer = driver.CreateRenderBuffer,
-                DestroyRenderBuffer = driver.DestroyRenderBuffer,
-            });
+                gpuDriverImpl = value;
+                Ultralight.ulPlatformSetGPUDriver(gpuDriver = new GPUDriver
+                {
+                    BeginSynchronize = value.BeginSynchronize,
+                    EndSynchronize = value.EndSynchronize,
+                    NextTextureId = value.GetNextTextureId,
+                    CreateTexture = (i, b) => value.CreateTexture(i, new Bitmap(b, false)),
+                    UpdateTexture = (i, b) => value.UpdateTexture(i, new Bitmap(b, false)),
+                    DestroyTexture = value.DestroyTexture,
+                    NextGeometryId = value.GetNextGeometryId,
+                    CreateGeometry = value.CreateGeometry,
+                    UpdateGeometry = value.UpdateGeometry,
+                    DestroyGeometry = value.DestroyGeometry,
+                    NextRenderBufferId = value.GetNextRenderBufferId,
+                    CreateRenderBuffer = value.CreateRenderBuffer,
+                    DestroyRenderBuffer = value.DestroyRenderBuffer,
+                });
+            }
         }
 
         /// <summary>
         /// Sets the platform file system.
         /// </summary>
         /// <param name="filesystem">The filesystem to use.</param>
-        public unsafe static void SetFileSystem(IFileSystem filesystem)
+        public unsafe static IFileSystem FileSystem
         {
-            plFileSystemImpl = filesystem;
-            Ultralight.ulPlatformSetFileSystem(plFileSystem = new FileSystem
+            set
             {
-                OpenFile = (p, _) => filesystem.OpenFile(p),
-                CloseFile = filesystem.CloseFile,
-                FileExists = filesystem.FileExists,
-                GetFileSize = filesystem.GetFileSize,
-                GetMimeType = filesystem.GetMimeType,
-                ReadFromFile = (h, d, l) => filesystem.ReadFile(h, new Span<byte>(d, (int)l)),
-            });
+                fileSystemImpl = value;
+                Ultralight.ulPlatformSetFileSystem(fileSystem = new FileSystem
+                {
+                    OpenFile = (p, _) => value.OpenFile(p),
+                    CloseFile = value.CloseFile,
+                    FileExists = value.FileExists,
+                    GetFileSize = value.GetFileSize,
+                    GetMimeType = value.GetMimeType,
+                    ReadFromFile = (h, d, l) => value.ReadFile(h, new Span<byte>(d, (int)l)),
+                });
+            }
         }
 
         /// <summary>
         /// Sets the platform clipboard.
         /// </summary>
         /// <param name="clipboard">The clipboard to use.</param>
-        public static void SetClipboard(IClipboard clipboard)
+        public static IClipboard Clipboard
         {
-            plClipboardImpl = clipboard;
-            Ultralight.ulPlatformSetClipboard(plClipboard = new Clipboard
+            set
             {
-                Clear = clipboard.Clear,
-                WritePlainText = clipboard.SetText,
-                ReadPlainText = (out string str) => str = clipboard.GetText(),
-            });
+                clipboardImpl = value;
+                Ultralight.ulPlatformSetClipboard(clipboard = new Clipboard
+                {
+                    Clear = value.Clear,
+                    WritePlainText = value.SetText,
+                    ReadPlainText = (out string str) => str = value.GetText(),
+                });
+            }
         }
     }
 }

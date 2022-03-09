@@ -10,13 +10,9 @@ namespace Oxide.Graphics.Drivers
     {
         [MarshalAs(UnmanagedType.U1)]
         public GPUCommandType CommandType;
-
         public GPUState State;
-
         public uint GeometryId;
-
         public uint IndexCount;
-
         public uint IndexOffset;
     }
 }

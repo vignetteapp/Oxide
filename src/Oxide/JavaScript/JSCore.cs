@@ -7,7 +7,7 @@ using Oxide.Javascript.Interop;
 
 namespace Oxide.Javascript
 {
-    public class JSCore
+    internal class JSCore
     {
 
 #pragma warning disable CA2101

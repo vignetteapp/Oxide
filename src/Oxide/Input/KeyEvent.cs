@@ -19,7 +19,7 @@ namespace Oxide.Input
         public readonly bool IsAutoRepeat;
         public readonly bool IsSystemKey;
 
-        protected KeyEvent(IntPtr handle)
+        private KeyEvent(IntPtr handle)
             : base(handle)
         {
         }

@@ -2,25 +2,15 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Oxide.Graphics.Drivers.Buffers
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct IndexBuffer
+    public unsafe struct IndexBuffer
     {
         private readonly uint size;
-        private readonly IntPtr data;
-
-        public IReadOnlyList<byte> Data
-        {
-            get
-            {
-                byte[] array = new byte[size];
-                Marshal.Copy(data, array, 0, array.Length);
-                return array;
-            }
-        }
+        private readonly byte* data;
+        public ReadOnlySpan<byte> Data => new Span<byte>(data, (int)size);
     }
 }

@@ -2,47 +2,38 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Oxide.Graphics.Drivers.Vertices;
 
 namespace Oxide.Graphics.Drivers.Buffers
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct VertexBuffer
+    public unsafe struct VertexBuffer
     {
         public VertexBufferFormat Format;
         private readonly uint count;
-        private readonly IntPtr data;
+        private readonly void* data;
 
-        public IReadOnlyList<IVertex> Data
+        public ReadOnlySpan<Vertex_2f_4ub_2f_2f_28f> Vertex_2f_4ub_2f_2f_28f
         {
             get
             {
-                if (Format == VertexBufferFormat.Format_2f_4ub_2f_2f_28f)
-                    return toVertices<Vertex_2f_4ub_2f_2f_28f>(data, count).Cast<IVertex>().ToList();
+                if (Format != VertexBufferFormat.Format_2f_4ub_2f_2f_28f)
+                    throw new InvalidOperationException();
 
-                if (Format == VertexBufferFormat.Format_2f_4ub_2f)
-                    return toVertices<Vertex_2f_4ub_2f>(data, count).Cast<IVertex>().ToList();
-
-                return null;
+                return new Span<Vertex_2f_4ub_2f_2f_28f>(data, (int)count);
             }
         }
 
-        private static T[] toVertices<T>(IntPtr ptr, uint count)
-            where T : IVertex
+        public ReadOnlySpan<Vertex_2f_4ub_2f> Vertex_2f_4ub_2f
         {
-            int size = Marshal.SizeOf<T>();
-            var array = new T[count];
-
-            for (int i = 0; i < count; i++)
+            get
             {
-                var item = new IntPtr(ptr.ToInt64() + i * size);
-                array[i] = Marshal.PtrToStructure<T>(item);
-            }
+                if (Format != VertexBufferFormat.Format_2f_4ub_2f_2f_28f)
+                    throw new InvalidOperationException();
 
-            return array;
+                return new Span<Vertex_2f_4ub_2f>(data, (int)count);
+            }
         }
     }
 }

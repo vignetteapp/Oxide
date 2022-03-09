@@ -6,7 +6,7 @@ using System;
 namespace Oxide.Javascript.Interop
 {
     [Flags]
-    public enum JSPropertyAttribute : uint
+    internal enum JSPropertyAttribute : uint
     {
         /// <summary>
         /// Specifies that a property has no special attributes.

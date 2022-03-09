@@ -13,7 +13,7 @@ using Oxide.Platforms;
 
 namespace Oxide
 {
-    public class Ultralight
+    internal class Ultralight
     {
 
 #pragma warning disable CA2101
