@@ -97,9 +97,9 @@ namespace Oxide.Javascript.Interop
                 case JSType.Symbol:
                 case JSType.Object:
                     {
-                        if (JSCore.JSValueIsArray(context.Handle, value))
+                        if (JSCore.JSValueIsArray(context.Handle, value) && JSCore.JSValueGetTypedArrayType(context.Handle, value, out error) != JSTypedArrayType.None)
                         {
-                            result = new JSArray(context, value);
+                            result = new JSTypedArray(context, value);
                             break;
                         }
 

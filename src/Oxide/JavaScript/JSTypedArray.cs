@@ -5,19 +5,18 @@ using System;
 
 namespace Oxide.Javascript
 {
-    public class JSArray : JSObject
+    public class JSTypedArray : JSObject
     {
         public int Length => (int)JSCore.JSObjectGetTypedArrayLength(Context.Handle, Handle, out _);
         public int ByteLength => (int)JSCore.JSObjectGetTypedArrayByteLength(Context.Handle, Handle, out _);
         public int ByteOffset => (int)JSCore.JSObjectGetTypedArrayByteOffset(Context.Handle, Handle, out _);
-        public JSTypedArrayType ArrayType => JSCore.JSValueGetTypedArrayType(Context.Handle, Handle, out _);
 
-        internal JSArray(JSContext context, IntPtr handle)
+        internal JSTypedArray(JSContext context, IntPtr handle)
             : base(context, handle)
         {
         }
 
-        internal JSArray(JSContext context, JSTypedArrayType arrayType, uint length)
+        internal JSTypedArray(JSContext context, JSTypedArrayType arrayType, uint length)
             : base(context, makeTypedArray(context, arrayType, length))
         {
         }
