@@ -20,7 +20,7 @@ using var myWindow = myApp.Monitor.CreateWindow(500, 500, false, WindowFlags.Tit
 using var myOverlay = myWindow.CreateOverlay();
 
 myOverlay.View.URL = @"https://google.com/";
-myOverlay.View.OnDOMReady += (_, __) => myOverlay.View.GetJSContext(ctx => myWindow.Title = ctx.Global.document.title);
+myOverlay.View.OnTitleChanged += (_, args) => myWindow.Title = args.Value;
 
 myWindow.OnClose += (_, __) => myApp.Quit();
 myWindow.OnResize += (_, args) => myOverlay.Size = new Vector2(args.Width, args.Height);

@@ -48,7 +48,7 @@ namespace Oxide.Javascript.Interop
 
             if (Method is ConstructorInfo ci)
             {
-                lambdaExpression = Expression.Lambda(Expression.New(ci, paramExpressions), Expression.Parameter(typeof(object)), argsExpression);
+                lambdaExpression = Expression.Lambda(Expression.Convert(Expression.New(ci, paramExpressions), typeof(object)), Expression.Parameter(typeof(object)), argsExpression);
             }
 
             func = (Func<object, object[], object>)lambdaExpression?.Compile();

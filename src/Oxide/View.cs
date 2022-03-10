@@ -181,6 +181,8 @@ namespace Oxide
         /// </summary>
         public event EventHandler OnHistoryUpdated;
 
+#pragma warning disable IDE0052 // References are kept to avoid garbage collection
+
         private ChangePropertyCallback titleChanged;
         private ChangePropertyCallback tooltipChanged;
         private ChangePropertyCallback urlChanged;
@@ -194,21 +196,23 @@ namespace Oxide
         private FailLoadingCallback failLoad;
         private UpdateHistoryCallback historyUpdate;
 
+#pragma warning restore IDE0052
+
         internal View(IntPtr handle)
             : base(handle, true)
         {
-            Ultralight.ulViewSetUpdateHistoryCallback(handle, historyUpdate += handleHistoryUpdate, IntPtr.Zero);
-            Ultralight.ulViewSetBeginLoadingCallback(handle, beginLoad += handleLoadingBegin, IntPtr.Zero);
-            Ultralight.ulViewSetFinishLoadingCallback(handle, finishLoad += handleLoadingFinish, IntPtr.Zero);
-            Ultralight.ulViewSetFailLoadingCallback(handle, failLoad += handleLoadingFail, IntPtr.Zero);
-            Ultralight.ulViewSetWindowObjectReadyCallback(handle, windowObjectReady += handleReadyWindowObject, IntPtr.Zero);
-            Ultralight.ulViewSetDOMReadyCallback(handle, domReady += handleReadyDOM, IntPtr.Zero);
-            Ultralight.ulViewSetChangeTitleCallback(handle, titleChanged += handleTitleChange, IntPtr.Zero);
-            Ultralight.ulViewSetChangeURLCallback(handle, urlChanged += handleURLChange, IntPtr.Zero);
-            Ultralight.ulViewSetChangeTooltipCallback(handle, tooltipChanged += handleTooltipChange, IntPtr.Zero);
-            Ultralight.ulViewSetChangeCursorCallback(handle, cursorChanged += handleCursorChange, IntPtr.Zero);
-            Ultralight.ulViewSetAddConsoleMessageCallback(handle, consoleLogged += handleConsoleMessage, IntPtr.Zero);
-            Ultralight.ulViewSetCreateChildViewCallback(handle, childCreated += handleChildViewCreated, IntPtr.Zero);
+            Ultralight.ulViewSetUpdateHistoryCallback(handle, historyUpdate = handleHistoryUpdate, IntPtr.Zero);
+            Ultralight.ulViewSetBeginLoadingCallback(handle, beginLoad = handleLoadingBegin, IntPtr.Zero);
+            Ultralight.ulViewSetFinishLoadingCallback(handle, finishLoad = handleLoadingFinish, IntPtr.Zero);
+            Ultralight.ulViewSetFailLoadingCallback(handle, failLoad = handleLoadingFail, IntPtr.Zero);
+            Ultralight.ulViewSetWindowObjectReadyCallback(handle, windowObjectReady = handleReadyWindowObject, IntPtr.Zero);
+            Ultralight.ulViewSetDOMReadyCallback(handle, domReady = handleReadyDOM, IntPtr.Zero);
+            Ultralight.ulViewSetChangeTitleCallback(handle, titleChanged = handleTitleChange, IntPtr.Zero);
+            Ultralight.ulViewSetChangeURLCallback(handle, urlChanged = handleURLChange, IntPtr.Zero);
+            Ultralight.ulViewSetChangeTooltipCallback(handle, tooltipChanged = handleTooltipChange, IntPtr.Zero);
+            Ultralight.ulViewSetChangeCursorCallback(handle, cursorChanged = handleCursorChange, IntPtr.Zero);
+            Ultralight.ulViewSetAddConsoleMessageCallback(handle, consoleLogged = handleConsoleMessage, IntPtr.Zero);
+            Ultralight.ulViewSetCreateChildViewCallback(handle, childCreated = handleChildViewCreated, IntPtr.Zero);
         }
 
         /// <summary>
@@ -227,18 +231,18 @@ namespace Oxide
 
         protected override void DisposeManaged()
         {
-            historyUpdate -= handleHistoryUpdate;
-            beginLoad -= handleLoadingBegin;
-            finishLoad -= handleLoadingFinish;
-            failLoad -= handleLoadingFail;
-            windowObjectReady -= handleReadyWindowObject;
-            domReady -= handleReadyDOM;
-            titleChanged -= handleTitleChange;
-            tooltipChanged -= handleTooltipChange;
-            urlChanged -= handleURLChange;
-            cursorChanged -= handleCursorChange;
-            consoleLogged -= handleConsoleMessage;
-            childCreated -= handleChildViewCreated;
+            historyUpdate = null;
+            beginLoad = null;
+            finishLoad = null;
+            failLoad = null;
+            windowObjectReady = null;
+            domReady = null;
+            titleChanged = null;
+            tooltipChanged = null;
+            urlChanged = null;
+            cursorChanged = null;
+            consoleLogged = null;
+            childCreated = null;
         }
 
         protected override void DisposeUnmanaged()

@@ -53,7 +53,7 @@ namespace Oxide.Apps
 
             Renderer = new Renderer(AppCore.ulAppGetRenderer(Handle));
             Monitor = new Monitor(AppCore.ulAppGetMainMonitor(Handle), this);
-            AppCore.ulAppSetUpdateCallback(Handle, updateCallback += handleAppUpdate, IntPtr.Zero);
+            AppCore.ulAppSetUpdateCallback(Handle, updateCallback = handleAppUpdate, IntPtr.Zero);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Oxide.Apps
 
         protected override void DisposeManaged()
         {
-            updateCallback -= handleAppUpdate;
+            updateCallback = null;
         }
 
         protected override void DisposeUnmanaged()

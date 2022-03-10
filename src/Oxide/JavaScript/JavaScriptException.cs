@@ -7,33 +7,25 @@ namespace Oxide.Javascript
 {
     internal class JavascriptException : Exception
     {
-        public static Exception Throw(JSContext context, IntPtr handle)
+        public JavascriptException(string message, JSValue error = default)
+            : base(message, getError(message, error))
         {
-            var jsObject = new JSObject(context, handle, false);
+        }
 
-            if (jsObject.IsHostObject)
+        private static Exception getError(string message, JSValue value)
+        {
+            if (value.Type == JSType.Object)
             {
-                var hostObject = jsObject.GetHostObject();
+                var obj = value.GetValue();
 
-                if (hostObject is Exception e)
-                    return new JavascriptException("An exception has occurred from the host.", e);
+                if (obj is Exception e)
+                    return e;
 
-                return new JavascriptException(hostObject.ToString());
+                if (obj is JSObject jsObj)
+                    return new JavascriptException(message, ((dynamic)jsObj).toString());
             }
 
-            return new JavascriptException(format(jsObject));
-        }
-
-        private static string format(dynamic error) => $"{error.name}: {error.message}";
-
-        private JavascriptException(string message)
-            : base(message)
-        {
-        }
-
-        private JavascriptException(string message, Exception underlyingException)
-            : base(message, underlyingException)
-        {
+            return null;
         }
     }
 }

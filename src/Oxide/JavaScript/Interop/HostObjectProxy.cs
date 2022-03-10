@@ -9,16 +9,14 @@ using System.Runtime.InteropServices;
 
 namespace Oxide.Javascript.Interop
 {
-    internal unsafe sealed class HostObjectProxy : IDisposable
+    internal unsafe static class HostObjectProxy
     {
-        public readonly IntPtr Handle;
-        private readonly JSContext context;
-        private bool isDisposed;
+        public static readonly IntPtr Handle;
+        private static readonly JSClassDefinition def;
 
-        public HostObjectProxy(JSContext context)
+        static HostObjectProxy()
         {
-            this.context = context;
-            Handle = JSCore.JSClassCreate(new JSClassDefinition
+            def = new JSClassDefinition
             {
                 Name = @"HostObject",
                 Version = 1000,
@@ -31,7 +29,9 @@ namespace Oxide.Javascript.Interop
                 GetProperty = getProperty,
                 SetProperty = setProperty,
                 Finalize = finalize
-            });
+            };
+
+            Handle = JSCore.JSClassCreate(def);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -50,7 +50,7 @@ namespace Oxide.Javascript.Interop
         private static bool hasProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName) => true;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IntPtr getProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName, out IntPtr exception)
+        private static IntPtr getProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName, out IntPtr exception)
         {
             try
             {
@@ -64,34 +64,34 @@ namespace Oxide.Javascript.Interop
                 {
                     var param = indexer.GetIndexParameters().FirstOrDefault();
                     if (tryChangeType(propName, param.ParameterType, out var index))
-                        return context.Converter.ConvertHostObject(indexer.GetValue(hostObject.Target, new[] { index }));
+                        return JSValue.From(ctx, indexer.GetValue(hostObject.Target, new[] { index }));
                 }
 
                 var member = hostObject.Type.Members.FirstOrDefault(m => m.Name == propName);
 
                 if (member is FieldInfo field)
-                    return context.Converter.ConvertHostObject(field.GetValue(hostObject.Target));
+                    return JSValue.From(ctx, field.GetValue(hostObject.Target));
 
                 if (member is PropertyInfo prop && prop.CanRead)
-                    return context.Converter.ConvertHostObject(prop.GetValue(hostObject.Target));
+                    return JSValue.From(ctx, prop.GetValue(hostObject.Target));
 
                 if (member is MethodInfo method)
                 {
                     var hostMethod = hostObject.Type.Methods.FirstOrDefault(m => m.Method == method);
                     if (hostMethod != null)
-                        return context.Converter.ConvertHostObject(hostMethod);
+                        return JSValue.From(ctx, hostMethod);
                 }
             }
             catch (Exception e)
             {
-                exception = context.Converter.ConvertHostObject(e);
+                exception = JSValue.From(ctx, e);
             }
 
-            return context.Converter.ConvertHostObject(Undefined.Value);
+            return JSValue.From(ctx, Undefined.Value);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private bool setProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName, IntPtr jsValue, out IntPtr exception)
+        private static bool setProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName, IntPtr jsValue, out IntPtr exception)
         {
             var hostObject = unwrap(jsObject);
 
@@ -99,7 +99,7 @@ namespace Oxide.Javascript.Interop
             {
                 exception = IntPtr.Zero;
 
-                var value = context.Converter.ConvertJSValue(jsValue);
+                var value = new JSValue(ctx, jsValue).GetValue();
 
                 var indexer = hostObject.Type.Members.OfType<PropertyInfo>().FirstOrDefault(p => p.GetIndexParameters().Length == 1);
 
@@ -133,22 +133,22 @@ namespace Oxide.Javascript.Interop
             }
             catch (Exception e)
             {
-                exception = context.Converter.ConvertHostObject(e);
+                exception = JSValue.From(ctx, e);
             }
 
-            exception = context.Converter.ConvertHostObject(new InvalidOperationException($@"Failed to set property ""{propName}"" on {hostObject.Type.Name}"));
+            exception = JSValue.From(ctx, new InvalidOperationException($@"Failed to set property ""{propName}"" on {hostObject.Type.Name}"));
             return false;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private bool deleteProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName, out IntPtr exception)
+        private static bool deleteProperty(IntPtr ctx, IntPtr jsClass, IntPtr jsObject, string propName, out IntPtr exception)
         {
-            exception = context.Converter.ConvertHostObject(new InvalidOperationException($"Cannot delete properties of {nameof(HostObjectProxy)}"));
+            exception = JSValue.From(ctx, new InvalidOperationException($"Cannot delete properties of {nameof(HostObjectProxy)}"));
             return false;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IntPtr callAsConstructor(IntPtr ctx, IntPtr jsClass, IntPtr jsConstructor, uint argumentCount, IntPtr argumentsHandle, out IntPtr exception)
+        private static IntPtr callAsConstructor(IntPtr ctx, IntPtr jsClass, IntPtr jsConstructor, uint argumentCount, IntPtr argumentsHandle, out IntPtr exception)
         {
             var hostObject = unwrap(jsConstructor);
 
@@ -156,21 +156,27 @@ namespace Oxide.Javascript.Interop
             {
                 exception = IntPtr.Zero;
 
-                var arr = new Span<IntPtr>((void*)argumentsHandle, (int)argumentCount);
+                try
+                {
+                    var arr = new Span<IntPtr>((void*)argumentsHandle, (int)argumentCount).ToArray()
+                        .Select(arg => new JSValue(ctx, arg).GetValue()).ToArray();
 
-                return context.Converter.ConvertHostObject(
-                    Activator.CreateInstance(
-                        type, arr.ToArray().Select(a => context.Converter.ConvertJSValue(a))
-                    )
-                );
+                    return arr.Length > 0
+                        ? JSValue.From(ctx, Activator.CreateInstance(type, arr))
+                        : JSValue.From(ctx, Activator.CreateInstance(type));
+                }
+                catch (Exception e)
+                {
+                    exception = JSValue.From(ctx, e);
+                }
             }
 
-            exception = context.Converter.ConvertHostObject(new InvalidOperationException($"{hostObject.Type.Name} is not a constructor."));
-            return context.Converter.ConvertHostObject(Undefined.Value);
+            exception = JSValue.From(ctx, new InvalidOperationException($"{hostObject.Type.Name} is not a constructor."));
+            return JSValue.From(ctx, Undefined.Value);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private IntPtr callAsFunction(IntPtr ctx, IntPtr jsClass, string className, IntPtr jsFunction, IntPtr jsThisObject, uint argumentCount, IntPtr argumentsHandle, out IntPtr exception)
+        private static IntPtr callAsFunction(IntPtr ctx, IntPtr jsClass, string className, IntPtr jsFunction, IntPtr jsThisObject, uint argumentCount, IntPtr argumentsHandle, out IntPtr exception)
         {
             try
             {
@@ -182,18 +188,18 @@ namespace Oxide.Javascript.Interop
                 if (hostMethod.Target is HostMethod method)
                 {
                     var arr = new Span<IntPtr>((void*)argumentsHandle, (int)argumentCount);
-                    var result = method.Invoke(hostTarget.Target, arr.ToArray().Select(arg => context.Converter.ConvertJSValue(arg)).ToArray());
+                    var result = method.Invoke(hostTarget.Target, arr.ToArray().Select(arg => new JSValue(ctx, arg).GetValue()).ToArray());
 
                     if (method.Method is MethodInfo mi && mi.ReturnType != typeof(void))
-                        return context.Converter.ConvertHostObject(result);
+                        return JSValue.From(ctx, result);
                 }
             }
             catch (Exception e)
             {
-                exception = context.Converter.ConvertHostObject(e);
+                exception = JSValue.From(ctx, e);
             }
 
-            return context.Converter.ConvertHostObject(Undefined.Value);
+            return JSValue.From(ctx, Undefined.Value);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -222,27 +228,6 @@ namespace Oxide.Javascript.Interop
                 result = null;
                 return false;
             }
-        }
-
-        internal void Dispose(bool _)
-        {
-            if (isDisposed)
-                return;
-
-            JSCore.JSClassRelease(Handle);
-
-            isDisposed = true;
-        }
-
-        ~HostObjectProxy()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }

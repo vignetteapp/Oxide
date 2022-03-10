@@ -129,15 +129,19 @@ namespace Oxide.Apps
         /// </summary>
         public event EventHandler<ResizeEventArgs> OnResize;
 
+#pragma warning disable IDE0052 // References are kept to avoid garbage collection
+
         private ResizeCallback resize;
         private CloseCallback close;
+
+#pragma warning restore IDE0052
 
         internal Window(Monitor monitor, int width, int height, bool isFullScreen, WindowFlags flags)
             : base(AppCore.ulCreateWindow(monitor.Handle, (uint)width, (uint)height, isFullScreen, flags))
         {
             Monitor = monitor;
-            AppCore.ulWindowSetCloseCallback(Handle, close += handleClose, IntPtr.Zero);
-            AppCore.ulWindowSetResizeCallback(Handle, resize += handleResize, IntPtr.Zero);
+            AppCore.ulWindowSetCloseCallback(Handle, close = handleClose, IntPtr.Zero);
+            AppCore.ulWindowSetResizeCallback(Handle, resize = handleResize, IntPtr.Zero);
         }
 
         private void handleClose(IntPtr data, IntPtr window)
@@ -205,8 +209,8 @@ namespace Oxide.Apps
 
         protected override void DisposeManaged()
         {
-            resize -= handleResize;
-            close -= handleClose;
+            resize = null;
+            close = null;
         }
 
         protected override void DisposeUnmanaged()

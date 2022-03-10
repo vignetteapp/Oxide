@@ -2,7 +2,8 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using System;
-using Oxide.Javascript.Interop;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Oxide.Javascript
 {
@@ -29,15 +30,11 @@ namespace Oxide.Javascript
             }
         }
 
-        internal readonly JSValueRefConverter Converter;
-        internal readonly HostObjectProxy Proxy;
-
         internal JSContext(IntPtr handle, bool owned = true)
             : base(handle, owned)
         {
-            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(handle), false);
-            Proxy = new HostObjectProxy(this);
-            Converter = new JSValueRefConverter(this);
+            contexts.Add(this);
+            Global = new JSObject(new JSValue(Handle, JSCore.JSContextGetGlobalObject(handle)), false);
         }
 
         /// <summary>
@@ -63,9 +60,6 @@ namespace Oxide.Javascript
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
 
-            // if (type.IsGenericType)
-            //     throw new ArgumentException($"{type.Name} contains generic arguments.", nameof(type));
-
             Global[name ?? type.Name] = type;
         }
 
@@ -89,12 +83,15 @@ namespace Oxide.Javascript
                 value = JSCore.JSEvaluateScript(Handle, script, ((JSObject)Global).Handle, null, 1, out error);
 
             if (error != IntPtr.Zero)
-                throw JavascriptException.Throw(this, error);
+                throw new JavascriptException(@"An error has occured while evaluating the script.", new JSValue(Handle, error));
 
-            return Converter.ConvertJSValue(value);
+            return new JSValue(Handle, value).GetValue();
         }
 
-        protected override void DisposeManaged() => Proxy.Dispose();
+        protected override void DisposeManaged() => contexts.Remove(this);
         protected override void DisposeUnmanaged() => JSCore.JSGlobalContextRelease(Handle);
+
+        private static readonly List<JSContext> contexts = new List<JSContext>();
+        public static JSContext GetContext(IntPtr ptr) => contexts.FirstOrDefault(ctx => ctx.Handle == ptr);
     }
 }
