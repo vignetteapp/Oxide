@@ -3,10 +3,11 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Oxide.Interop
 {
-    internal class ULStringMarshaler : ICustomMarshaler
+    internal unsafe class ULStringMarshaler : ICustomMarshaler
     {
         private readonly bool destroy;
 
@@ -35,10 +36,11 @@ namespace Oxide.Interop
             if (managedObj is not string str)
                 throw new MarshalDirectiveException($"Cannot marshal {managedObj.GetType().Name} to ULString.");
 
-            return Ultralight.ulCreateStringUTF8(str, (uint)str.Length);
+            fixed (byte* ptr = Encoding.Unicode.GetBytes(str))
+                return Ultralight.ulCreateStringUTF16((IntPtr)ptr, (uint)str.Length);
         }
 
         public object MarshalNativeToManaged(IntPtr pNativeData)
-            => Marshal.PtrToStringUni(Ultralight.ulStringGetData(pNativeData));
+            => Encoding.Unicode.GetString(new Span<byte>((void*)Ultralight.ulStringGetData(pNativeData), ((int)Ultralight.ulStringGetLength(pNativeData)) * 2));
     }
 }

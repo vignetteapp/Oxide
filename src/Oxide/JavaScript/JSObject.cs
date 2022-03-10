@@ -2,13 +2,12 @@
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
 using System;
-using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Oxide.Javascript.Interop;
 
-namespace Oxide.Javascript.Objects
+namespace Oxide.Javascript
 {
     public unsafe class JSObject : DynamicObject, IDisposable
     {
@@ -22,7 +21,8 @@ namespace Oxide.Javascript.Objects
                 if (handle == IntPtr.Zero)
                     throw new InvalidOperationException(@"This object has yet to be initialized.");
 
-                return handle;
+                lock (sync)
+                    return handle;
             }
         }
 
@@ -53,34 +53,18 @@ namespace Oxide.Javascript.Objects
 
         protected readonly JSContext Context;
         private readonly IntPtr handle;
+        private readonly bool protect;
         private bool isDisposed;
+        private readonly object sync = new object();
 
         internal JSObject(JSContext context, IntPtr handle, bool protect = true)
         {
             Context = context;
             this.handle = handle;
+            this.protect = protect;
 
-            if (!protect)
-                return;
-
-            JSCore.JSValueProtect(context.Handle, Handle);
-        }
-
-        public override IEnumerable<string> GetDynamicMemberNames()
-        {
-            var members = new List<string>();
-            var accumulator = JSCore.JSObjectCopyPropertyNames(Context.Handle, Handle);
-            uint length = JSCore.JSPropertyNameArrayGetCount(accumulator);
-
-            for (uint i = 0; i < length; i++)
-            {
-                string item = JSCore.JSPropertyNameArrayGetNameAtIndex(accumulator, i);
-                members.Add(item);
-            }
-
-            JSCore.JSPropertyNameArrayRelease(accumulator);
-
-            return members;
+            if (protect)
+                JSCore.JSValueProtect(context.Handle, Handle);
         }
 
         public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
@@ -90,19 +74,19 @@ namespace Oxide.Javascript.Objects
             if (indexes.Length > 1)
                 return false;
 
-            if (!JSCore.JSObjectHasProperty(Context.Handle, Handle, indexes[0].ToString()))
-                return false;
+            IntPtr error = IntPtr.Zero;
+            IntPtr value = IntPtr.Zero;
 
-            IntPtr error;
-            IntPtr value;
-
-            if (uint.TryParse(indexes[0].ToString(), out uint num))
+            if (IsArray && uint.TryParse(indexes[0].ToString(), out uint num))
             {
                 value = JSCore.JSObjectGetPropertyAtIndex(Context.Handle, Handle, num, out error);
             }
-            else
+
+            string prop = indexes[0].ToString();
+
+            if (JSCore.JSObjectHasProperty(Context.Handle, Handle, prop))
             {
-                value = JSCore.JSObjectGetProperty(Context.Handle, Handle, indexes[0].ToString(), out error);
+                value = JSCore.JSObjectGetProperty(Context.Handle, Handle, prop, out error);
             }
 
             result = Context.Converter.ConvertJSValue(value);
@@ -116,8 +100,7 @@ namespace Oxide.Javascript.Objects
         {
             if (JSCore.JSObjectHasProperty(Context.Handle, Handle, binder.Name))
             {
-                var value = JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error);
-                result = Context.Converter.ConvertJSValue(value);
+                result = Context.Converter.ConvertJSValue(JSCore.JSObjectGetProperty(Context.Handle, Handle, binder.Name, out var error));
                 throwOnError(error);
             }
             else
@@ -208,7 +191,7 @@ namespace Oxide.Javascript.Objects
             if (isDisposed)
                 return;
 
-            if (!Context.IsDisposed)
+            if (!Context.IsDisposed && protect)
                 JSCore.JSValueUnprotect(Context.Handle, Handle);
 
             isDisposed = true;

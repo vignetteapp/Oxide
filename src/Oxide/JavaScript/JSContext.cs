@@ -3,7 +3,6 @@
 
 using System;
 using Oxide.Javascript.Interop;
-using Oxide.Javascript.Objects;
 
 namespace Oxide.Javascript
 {
@@ -15,16 +14,6 @@ namespace Oxide.Javascript
         public readonly dynamic Global;
 
         /// <summary>
-        /// Gets whether this context is locked.
-        /// </summary>
-        public bool IsLocked { get; internal set; }
-
-        /// <summary>
-        /// Gets whether this context is available.
-        /// </summary>
-        public bool IsAvailable => !IsDisposed && IsLocked;
-
-        /// <summary>
         /// Gets whether this context is disposed.
         /// </summary>
         public new bool IsDisposed => base.IsDisposed;
@@ -33,7 +22,7 @@ namespace Oxide.Javascript
         {
             get
             {
-                if (!IsAvailable && !IsOwned)
+                if (IsDisposed && !IsOwned)
                     throw new InvalidOperationException(@"Attempted to perform operations while the context is unavailable.");
 
                 return base.Handle;
@@ -46,7 +35,7 @@ namespace Oxide.Javascript
         internal JSContext(IntPtr handle, bool owned = true)
             : base(handle, owned)
         {
-            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(Handle), false);
+            Global = new JSObject(this, JSCore.JSContextGetGlobalObject(handle), false);
             Proxy = new HostObjectProxy(this);
             Converter = new JSValueRefConverter(this);
         }

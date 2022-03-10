@@ -3,7 +3,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Oxide.Javascript.Objects;
 
 namespace Oxide.Javascript.Interop
 {
@@ -100,7 +99,7 @@ namespace Oxide.Javascript.Interop
                     {
                         if (JSCore.JSValueIsArray(context.Handle, value))
                         {
-                            result = new JSTypedArray(context, value);
+                            result = new JSArray(context, value);
                             break;
                         }
 

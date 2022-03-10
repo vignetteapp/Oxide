@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Oxide.Javascript.Interop
 {
-    internal class JSStringRefMarshal : ICustomMarshaler
+    internal unsafe class JSStringRefMarshal : ICustomMarshaler
     {
         private readonly bool destroy;
 
@@ -36,19 +36,18 @@ namespace Oxide.Javascript.Interop
             if (managedObj is not string str)
                 throw new MarshalDirectiveException($"Cannot marshal {managedObj.GetType().Name} to ULString.");
 
-            return JSCore.JSStringCreateWithUTF8CString(str);
+            fixed (byte* ptr = Encoding.UTF8.GetBytes(str))
+                return JSCore.JSStringCreateWithUTF8CString((IntPtr)ptr);
         }
 
-        public unsafe object MarshalNativeToManaged(IntPtr pNativeData)
+        public object MarshalNativeToManaged(IntPtr pNativeData)
         {
             uint copied = 0;
             uint length = JSCore.JSStringGetMaximumUTF8CStringSize(pNativeData);
             Span<byte> buffer = new byte[(int)length];
 
             fixed (byte* pointer = buffer)
-            {
                 copied = JSCore.JSStringGetUTF8CString(pNativeData, pointer, length);
-            }
 
             return Encoding.UTF8.GetString(buffer[..((int)copied - 1)]);
         }

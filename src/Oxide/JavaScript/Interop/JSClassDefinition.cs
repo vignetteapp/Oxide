@@ -30,16 +30,41 @@ namespace Oxide.Javascript.Interop
         internal JSObjectHasInstanceCallback HasInstance;
         internal JSObjectConvertToTypeCallbackEx ConvertToType;
         internal IntPtr PrivateData;
+    }
 
-        internal static JSClassDefinition Empty
-        {
-            get
-            {
-                var lib = NativeLibrary.Load(JSCore.LIB_WEBCORE);
-                var ptr = NativeLibrary.GetExport(lib, "kJSClassDefinitionEmpty");
-                return Marshal.PtrToStructure<JSClassDefinition>(ptr);
-            }
-        }
+    [Flags]
+    internal enum JSPropertyAttribute : uint
+    {
+        None = 0,
+        ReadOnly = 1 << 1,
+        DontEnum = 1 << 2,
+        DontDelete = 1 << 3,
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct JSStaticFunction
+    {
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        internal string Name;
+        internal JSObjectCallAsFunctionCallbackEx Call;
+        internal JSPropertyAttribute Attributes;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct JSStaticValue
+    {
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        internal string Name;
+        internal JSObjectGetPropertyCallbackEx GetProperty;
+        internal JSObjectSetPropertyCallback SetProperty;
+        internal JSPropertyAttribute Attributes;
+    }
+
+    [Flags]
+    internal enum JSClassAttributes
+    {
+        None = 0,
+        NoAutomaticPrototype = 1 << 1,
     }
 
     internal delegate void JSObjectInitializeCallbackEx(IntPtr ctx, IntPtr jsClass, IntPtr obj);

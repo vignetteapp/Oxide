@@ -181,7 +181,7 @@ namespace Oxide.Apps
         [DllImport(LIB_APPCORE, ExactSpelling = true)]
         internal static extern double ulWindowGetScale(IntPtr window);
 
-        [DllImport(LIB_APPCORE, ExactSpelling = true, CharSet = CharSet.Ansi, ThrowOnUnmappableChar = true, BestFitMapping = true)]
+        [DllImport(LIB_APPCORE, ExactSpelling = true, CharSet = CharSet.Ansi, BestFitMapping = true)]
         internal static extern void ulWindowSetTitle(IntPtr window, [MarshalAs(UnmanagedType.LPStr)] string title);
 
         [DllImport(LIB_APPCORE, ExactSpelling = true)]

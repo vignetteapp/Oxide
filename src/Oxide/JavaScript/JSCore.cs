@@ -15,7 +15,7 @@ namespace Oxide.Javascript
         internal const string LIB_WEBCORE = @"WebCore";
 
         [DllImport(LIB_WEBCORE, ExactSpelling = true)]
-        internal static extern IntPtr JSStringCreateWithUTF8CString([MarshalAs(UnmanagedType.LPUTF8Str)] string ptr);
+        internal static extern IntPtr JSStringCreateWithUTF8CString(IntPtr ptr);
 
         [DllImport(LIB_WEBCORE, ExactSpelling = true)]
         internal static extern void JSStringRelease(IntPtr str);

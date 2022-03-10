@@ -3,7 +3,6 @@
 
 using NUnit.Framework;
 using Oxide.Javascript;
-using Oxide.Javascript.Objects;
 
 namespace Oxide.Tests.Javascript
 {

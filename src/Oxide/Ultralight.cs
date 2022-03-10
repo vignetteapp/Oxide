@@ -173,13 +173,16 @@ namespace Oxide
         internal static extern void ulDestroyScrollEvent(IntPtr evt);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
-        internal static extern IntPtr ulCreateStringUTF8([MarshalAs(UnmanagedType.LPUTF8Str)] string ptr, uint length);
+        internal static extern IntPtr ulCreateStringUTF16(IntPtr ptr, uint length);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulDestroyString(IntPtr str);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr ulStringGetData(IntPtr str);
+
+        [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
+        internal static extern uint ulStringGetLength(IntPtr str);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern void ulPlatformSetSurfaceDefinition(SurfaceDefinition surfaceDefinition);

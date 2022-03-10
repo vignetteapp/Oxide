@@ -12,25 +12,17 @@ AppCore.EnableDefaultLogger(Path.Combine(basePath, "ultralight.log"));
 AppCore.EnablePlatformFileSystem(Path.Combine(basePath, "assets"));
 AppCore.EnablePlatformFontLoader();
 
-App myApp;
+using var myConfig = new Config { CachePath = Path.Combine(basePath, "cache"), OverrideRAMSize = 128 };
+using var myAppConfig = new AppConfig { ForceCPURenderer = false };
+using var myApp = new App(myAppConfig, myConfig);
 
-using (var myConfig = new Config { CachePath = Path.Combine(basePath, "cache") })
-{
-    using var myAppConfig = new AppConfig { ForceCPURenderer = false };
-    myApp = new App(myAppConfig, myConfig);
-}
+using var myWindow = myApp.Monitor.CreateWindow(500, 500, false, WindowFlags.Titled | WindowFlags.Resizable);
+using var myOverlay = myWindow.CreateOverlay();
 
-var myWindow = myApp.Monitor.CreateWindow(500, 500, false, WindowFlags.Titled | WindowFlags.Resizable);
-myWindow.Title = "My Example App";
-
-var myOverlay = myWindow.CreateOverlay();
 myOverlay.View.URL = @"https://google.com/";
+myOverlay.View.OnDOMReady += (_, __) => myOverlay.View.GetJSContext(ctx => myWindow.Title = ctx.Global.document.title);
 
 myWindow.OnClose += (_, __) => myApp.Quit();
 myWindow.OnResize += (_, args) => myOverlay.Size = new Vector2(args.Width, args.Height);
 
 myApp.Run();
-
-myOverlay.Dispose();
-myWindow.Dispose();
-myApp.Dispose();

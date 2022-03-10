@@ -12,26 +12,26 @@ namespace Oxide.Javascript.Interop
     internal unsafe sealed class HostObjectProxy : IDisposable
     {
         public readonly IntPtr Handle;
-        private readonly JSClassDefinition def;
         private readonly JSContext context;
         private bool isDisposed;
 
         public HostObjectProxy(JSContext context)
         {
-            def = JSClassDefinition.Empty;
-            def.Name = @"HostObject";
-            def.Version = 1000;
-            def.CallAsConstructor = callAsConstructor;
-            def.CallAsFunction = callAsFunction;
-            def.GetPropertyNames = getPropertyNames;
-            def.DeleteProperty = deleteProperty;
-            def.HasProperty = hasProperty;
-            def.GetProperty = getProperty;
-            def.SetProperty = setProperty;
-            def.Finalize = finalize;
-
-            Handle = JSCore.JSClassCreate(def);
             this.context = context;
+            Handle = JSCore.JSClassCreate(new JSClassDefinition
+            {
+                Name = @"HostObject",
+                Version = 1000,
+                Attributes = JSClassAttributes.NoAutomaticPrototype,
+                CallAsConstructor = callAsConstructor,
+                CallAsFunction = callAsFunction,
+                GetPropertyNames = getPropertyNames,
+                DeleteProperty = deleteProperty,
+                HasProperty = hasProperty,
+                GetProperty = getProperty,
+                SetProperty = setProperty,
+                Finalize = finalize
+            });
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

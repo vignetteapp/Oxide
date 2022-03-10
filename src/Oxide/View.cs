@@ -193,7 +193,6 @@ namespace Oxide
         private LoadingCallback domReady;
         private FailLoadingCallback failLoad;
         private UpdateHistoryCallback historyUpdate;
-        private JSContext context;
 
         internal View(IntPtr handle)
             : base(handle, true)
@@ -228,7 +227,6 @@ namespace Oxide
 
         protected override void DisposeManaged()
         {
-            context?.Dispose();
             historyUpdate -= handleHistoryUpdate;
             beginLoad -= handleLoadingBegin;
             finishLoad -= handleLoadingFinish;
@@ -252,10 +250,9 @@ namespace Oxide
         /// <param name="action">Action invoked while the <see cref="JSContext"/> is locked.</param>
         public void GetJSContext(Action<JSContext> action)
         {
-            context ??= new JSContext(Ultralight.ulViewLockJSContext(Handle), false);
-            context.IsLocked = true;
-            action.Invoke(context);
-            context.IsLocked = false;
+            using (var context = new JSContext(Ultralight.ulViewLockJSContext(Handle), false))
+                action.Invoke(context);
+
             Ultralight.ulViewUnlockJSContext(Handle);
         }
 
