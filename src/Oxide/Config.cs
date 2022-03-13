@@ -6,7 +6,7 @@ using Oxide.Graphics.Fonts;
 
 namespace Oxide
 {
-    public sealed class Config : DisposableObject
+    public unsafe sealed class Config : DisposableObject
     {
         private string cachePath;
 

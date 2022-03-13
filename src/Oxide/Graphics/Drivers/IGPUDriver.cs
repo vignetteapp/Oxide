@@ -1,6 +1,7 @@
 // Copyright (c) The Vignette Authors
 // Licensed under BSD 3-Clause License. See LICENSE for details.
 
+using System;
 using Oxide.Graphics.Bitmaps;
 using Oxide.Graphics.Drivers.Buffers;
 
@@ -92,6 +93,6 @@ namespace Oxide.Graphics.Drivers
         /// <summary>
         /// The callback invoked when the GPUDriver wants to update the command list.
         /// </summary>
-        void UpdateCommandList();
+        void UpdateCommandList(ReadOnlySpan<GPUCommand> commands);
     }
 }

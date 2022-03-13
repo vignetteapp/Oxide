@@ -9,8 +9,8 @@ namespace Oxide.Graphics.Drivers.Buffers
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct IndexBuffer
     {
-        private readonly uint size;
-        private readonly byte* data;
-        public ReadOnlySpan<byte> Data => new Span<byte>(data, (int)size);
+        public readonly uint Count;
+        public readonly IntPtr Pointer;
+        public ReadOnlySpan<byte> Data => new Span<byte>((void*)Pointer, (int)Count);
     }
 }

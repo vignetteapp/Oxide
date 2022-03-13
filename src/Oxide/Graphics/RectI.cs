@@ -12,11 +12,6 @@ namespace Oxide.Graphics
         public int Top;
         public int Right;
         public int Bottom;
-    }
-
-    public static class RectIExtensions
-    {
-        public static bool IsEmpty(this RectI rect)
-            => Ultralight.ulRectIIsEmpty(rect);
+        public bool IsEmpty => Ultralight.ulIntRectIsEmpty(this);
     }
 }

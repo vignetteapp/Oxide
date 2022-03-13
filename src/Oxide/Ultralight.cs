@@ -100,7 +100,7 @@ namespace Oxide
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         [return: MarshalAs(UnmanagedType.I1)]
-        internal static extern bool ulRectIIsEmpty(RectI rect);
+        internal static extern bool ulIntRectIsEmpty(RectI rect);
 
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern uint ulSurfaceGetWidth(IntPtr surface);
@@ -141,7 +141,7 @@ namespace Oxide
         [DllImport(LIB_ULTRALIGHT, ExactSpelling = true)]
         internal static extern IntPtr ulCreateKeyEvent(
             KeyEventType type,
-            uint modifiers,
+            KeyModifiers modifiers,
             int virtualKeyCode,
             int nativeKeyCode,
             [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(ULStringMarshaler))] string text,

@@ -14,8 +14,6 @@ namespace Oxide
 {
     public class View : DisposableObject
     {
-        private readonly bool isAccelerated;
-
         /// <summary>
         /// Get current loaded URL. Set loads a new URL.
         /// </summary>
@@ -76,23 +74,6 @@ namespace Oxide
                     throw new InvalidOperationException($"{typeof(ViewConfig)} must have IsAccelerated = true.");
 
                 return Ultralight.ulViewGetRenderTarget(Handle);
-            }
-        }
-
-        /// <summary>
-        /// Get the surface for this view.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when attempted to access when <see cref="ViewConfig"/>.IsAccelerated = true.
-        /// </exception>
-        public Surface Surface
-        {
-            get
-            {
-                if (isAccelerated)
-                    throw new InvalidOperationException($"{typeof(ViewConfig)} must have IsAccelerated = false.");
-
-                return new Surface(Ultralight.ulViewGetSurface(Handle));
             }
         }
 
@@ -198,6 +179,8 @@ namespace Oxide
 
 #pragma warning restore IDE0052
 
+        private readonly bool isAccelerated;
+
         internal View(IntPtr handle)
             : base(handle, true)
         {
@@ -247,6 +230,20 @@ namespace Oxide
 
         protected override void DisposeUnmanaged()
             => Ultralight.ulDestroyView(Handle);
+
+        /// <summary>
+        /// Get the surface for this view.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when attempted to access when <see cref="ViewConfig"/>.IsAccelerated = true.
+        /// </exception>
+        public Surface GetSurface()
+        {
+            if (isAccelerated)
+                throw new InvalidOperationException($"{typeof(ViewConfig)} must have IsAccelerated = false.");
+
+            return new Surface(Ultralight.ulViewGetSurface(Handle));
+        }
 
         /// <summary>
         /// Perform actions while the view's <see cref="JSContext"/> is locked.
@@ -396,7 +393,7 @@ namespace Oxide
     public enum ViewMessageSource
     {
         XML = 0,
-        JS,
+        Javascript,
         Network,
         ConsoleAPI,
         Storage,

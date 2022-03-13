@@ -48,23 +48,6 @@ namespace Oxide.Graphics
         public uint ByteSize => Ultralight.ulSurfaceGetSize(Handle);
 
         /// <summary>
-        /// Get the underlying Bitmap from the default Surface.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when a custom surface is used.
-        /// </exception>
-        public Bitmap Bitmap
-        {
-            get
-            {
-                if (Ultralight.ulSurfaceGetUserData(Handle) != IntPtr.Zero)
-                    throw new InvalidOperationException("Cannot get bitmap as a custom surface is defined.");
-
-                return new Bitmap(Ultralight.ulBitmapSurfaceGetBitmap(Handle), false);
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the dirty bounds.
         /// <br/>
         /// The returned <see cref="RectI"/> can be used to determine which portion of the pixel buffer has
@@ -90,6 +73,20 @@ namespace Oxide.Graphics
         internal Surface(IntPtr handle)
             : base(handle, true)
         {
+        }
+
+        /// <summary>
+        /// Get the underlying Bitmap from the default Surface.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when a custom surface is used.
+        /// </exception>
+        public Bitmap GetBitmap()
+        {
+            if (Ultralight.ulSurfaceGetUserData(Handle) != IntPtr.Zero)
+                throw new InvalidOperationException("Cannot get bitmap as a custom surface is defined.");
+
+            return new Bitmap(Ultralight.ulBitmapSurfaceGetBitmap(Handle), false);
         }
 
         /// <summary>

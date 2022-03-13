@@ -11,8 +11,8 @@ namespace Oxide.Graphics.Drivers.Buffers
     public unsafe struct VertexBuffer
     {
         public VertexBufferFormat Format;
-        private readonly uint count;
-        private readonly void* data;
+        public readonly uint Count;
+        public readonly IntPtr Pointer;
 
         public ReadOnlySpan<Vertex_2f_4ub_2f_2f_28f> Vertex_2f_4ub_2f_2f_28f
         {
@@ -21,7 +21,7 @@ namespace Oxide.Graphics.Drivers.Buffers
                 if (Format != VertexBufferFormat.Format_2f_4ub_2f_2f_28f)
                     throw new InvalidOperationException();
 
-                return new Span<Vertex_2f_4ub_2f_2f_28f>(data, (int)count);
+                return new Span<Vertex_2f_4ub_2f_2f_28f>((void*)Pointer, (int)Count);
             }
         }
 
@@ -29,10 +29,10 @@ namespace Oxide.Graphics.Drivers.Buffers
         {
             get
             {
-                if (Format != VertexBufferFormat.Format_2f_4ub_2f_2f_28f)
+                if (Format != VertexBufferFormat.Format_2f_4ub_2f)
                     throw new InvalidOperationException();
 
-                return new Span<Vertex_2f_4ub_2f>(data, (int)count);
+                return new Span<Vertex_2f_4ub_2f>((void*)Pointer, (int)Count);
             }
         }
     }

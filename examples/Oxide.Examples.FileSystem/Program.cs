@@ -41,7 +41,9 @@ namespace Oxide.Examples.FileSystem
                 renderer.Render();
             }
 
-            view.Surface.Bitmap.SaveAsPNG(Path.Combine(basePath, "screenshot.png"));
+            using var surface = view.GetSurface();
+            using var bitmap = surface.GetBitmap();
+            bitmap.SaveAsPNG(Path.Combine(basePath, "screenshot.png"));
         }
     }
 

@@ -32,6 +32,7 @@ namespace Oxide.Platforms
         /// <param name="callback">The callback.</param>
         public static LoggerMessageCallback Logger
         {
+            get => logger.LogMessage;
             set => Ultralight.ulPlatformSetLogger(logger = new Logger { LogMessage = value });
         }
 
@@ -41,8 +42,9 @@ namespace Oxide.Platforms
         /// Used when <see cref="ViewConfig.IsAccelerated"/> = false.
         /// </summary>
         /// <param name="definition">The surface definition to use.</param>
-        public static ISurfaceDefinition SetSurfaceDefinition
+        public static ISurfaceDefinition SurfaceDefinition
         {
+            get => surfaceImpl;
             set
             {
                 surfaceImpl = value;
@@ -75,8 +77,9 @@ namespace Oxide.Platforms
         /// Used when <see cref="ViewConfig.IsAccelerated"/> = true.
         /// </summary>
         /// <param name="driver">The driver to use.</param>
-        public static IGPUDriver SetGPUDriver
+        public static IGPUDriver GPUDriver
         {
+            get => gpuDriverImpl;
             set
             {
                 gpuDriverImpl = value;
@@ -95,6 +98,7 @@ namespace Oxide.Platforms
                     NextRenderBufferId = value.GetNextRenderBufferId,
                     CreateRenderBuffer = value.CreateRenderBuffer,
                     DestroyRenderBuffer = value.DestroyRenderBuffer,
+                    UpdateCommandList = (c) => value.UpdateCommandList(c.Commands),
                 });
             }
         }
@@ -105,6 +109,7 @@ namespace Oxide.Platforms
         /// <param name="filesystem">The filesystem to use.</param>
         public unsafe static IFileSystem FileSystem
         {
+            get => fileSystemImpl;
             set
             {
                 fileSystemImpl = value;
@@ -126,6 +131,7 @@ namespace Oxide.Platforms
         /// <param name="clipboard">The clipboard to use.</param>
         public static IClipboard Clipboard
         {
+            get => clipboardImpl;
             set
             {
                 clipboardImpl = value;
