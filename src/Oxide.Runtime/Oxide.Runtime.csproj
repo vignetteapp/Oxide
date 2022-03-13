@@ -16,16 +16,18 @@
     <PackageTags>Framework;UI;HTML5;Ultralight</PackageTags>
     <Title>Oxide.Runtime</Title>
     <Description>Native runtime libraries for Oxide</Description>
-    <Copyright>2022 ©️Vignette</Copyright>
+    <Copyright>2022 The Vignette Authors;Ultralight</Copyright>
     <PackageProjectUrl>https://github.com/vignetteapp/Oxide</PackageProjectUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="runtimes\**\*">
+  <ItemGroup Label="Native libraries">
+    <!-- See https://github.com/ppy/osu-framework/blob/master/osu.Framework.NativeLibs/osu.Framework.NativeLibs.csproj. -->
+    <None Include="runtimes\**\*" Pack="true" PackagePath="runtimes" />
+    <None Include="_._">
       <Pack>true</Pack>
-      <PackagePath>runtimes</PackagePath>
+      <PackagePath>lib\$(TargetFramework)</PackagePath>
     </None>
   </ItemGroup>
 
