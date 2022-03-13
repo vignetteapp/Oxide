@@ -27,10 +27,6 @@
       <Pack>true</Pack>
       <PackagePath>runtimes</PackagePath>
     </None>
-    <None Include="_._">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFramework)</PackagePath>
-    </None>
   </ItemGroup>
 
   <ItemGroup Label="Documents">
