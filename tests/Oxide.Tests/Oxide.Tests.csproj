@@ -14,9 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\src\Oxide.Runtimes.Win_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <None Include="..\..\src\Oxide.Runtimes.Linux_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <None Include="..\..\src\Oxide.Runtimes.OSX_x64\runtimes\**\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <None Include="..\..\src\Oxide.Runtime\runtimes\win-x64\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <None Include="..\..\src\Oxide.Runtime\runtimes\linux-x64\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <None Include="..\..\src\Oxide.Runtime\runtimes\osx-x64\*" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
   </ItemGroup>
 
   <ItemGroup>
